@@ -14,10 +14,13 @@ http://tri.dw.land.to/fsusb2n/
 #include <iostream>
 
 #include "ktv.hpp"
+#include "decoder.h"
 
 #ifdef B25
+#define _REAL_B25_
 	#include "B25Decoder.hpp"
 #endif
+#include "tssplitter_lite.h"
 
 /* usageの表示 */
 void usage(char *argv0)
@@ -26,7 +29,13 @@ void usage(char *argv0)
 #ifdef B25
 		<< " [--b25]"
 #endif
-		<< " [-v] channel recsec destfile" << std::endl;
+		<< " [-v]"
+		<< " [--sid n1,n2,...]"
+		<< " [--trim n] channel recsec destfile" << std::endl;
+	std::cerr << "--b25:            Decrypt using BCAS card" << std::endl;
+	std::cerr << "-v:               " << std::endl;
+	std::cerr << "--sid n1,n2,...:  Specify SID number or keywords(all,hd,sd1,sd2,sd3,1seg,epg) in CSV format" << std::endl;
+	std::cerr << "--trim n:         Specified number of packets discarded at the beginning" << std::endl;
 	exit(1);
 }
 /* オプション情報 */
@@ -38,6 +47,10 @@ struct Args {
 	int recsec;
 	char* destfile;
 	bool verbose;
+	bool splitter;
+	char* sid_list;
+	bool triming;
+	int trimcnt;
 };
 
 /* オプションの解析 */
@@ -50,7 +63,11 @@ Args parseOption(int argc, char *argv[])
 		false,
 		0,
 		NULL,
-		false
+		false,
+		false,
+		NULL,
+		false,
+		0
 	};
 	
 	while (1) {
@@ -58,12 +75,14 @@ Args parseOption(int argc, char *argv[])
 		static option long_options[] = {
 			{ "b25",      0, NULL, 'b' },
 			{ "B25",      0, NULL, 'b' },
+			{ "sid",      1, NULL, 'i'},
+			{ "trim",      1, NULL, 't'},
 			{ 0,     0, NULL, 0   }
 		};
 		
 		int r = getopt_long(argc, argv,
-		                    "bv",
-		                    long_options, &option_index);
+							"bvi",
+							long_options, &option_index);
 		if (r < 0) {
 			break;
 		}
@@ -74,6 +93,14 @@ Args parseOption(int argc, char *argv[])
 				break;
 			case 'v':
 				args.verbose = true;
+				break;
+			case 'i':
+				args.splitter = true;
+				args.sid_list = optarg;
+				break;
+			case 't':
+				args.triming = true;
+				args.trimcnt = atoi(optarg);
 				break;
 			default:
 				break;
@@ -177,29 +204,117 @@ int main(int argc, char **argv)
 		sleep(1);
 	} while(pDev->DeMod_GetSequenceState() < 8 && !caughtSignal);
 
+	/* initialize splitter */
+	ARIB_STD_B25_BUFFER	ubuf;
+	static splitbuf_t	splitbuf;
+	splitter			*sp = NULL;
+	int					split_select_finish = TSS_ERROR;
+	int					code = TSS_SUCCESS;
+	if(args.splitter) {
+		sp = split_startup(args.sid_list);
+		if(sp->sid_list == NULL) {
+			std::cerr << "Cannot start TS splitter." << std::endl;
+			return 1;
+		}
+		splitbuf.buffer = (u_char *)malloc( LENGTH_SPLIT_BUFFER );
+		splitbuf.allocation_size = LENGTH_SPLIT_BUFFER;
+	}
+
 	// 録画時間の基準開始時間
 	time_t time_start = time(NULL);
 
 	usbDev->startStream();
 
+	int 		stream_counter = 0;
+	uint8_t		*buf = NULL;
+	int			rlen;
+
+	if (args.triming){
+		while(1){
+			usleep(100000);
+			stream_counter += usbDev->getStream((const void **)&buf);
+			if( stream_counter / LENGTH_PACKET >= args.trimcnt) {
+				time_start = time(NULL);
+				log << "Remove " << stream_counter / LENGTH_PACKET << " packets(" << stream_counter << " byte)" << std::endl;
+				break;
+			}
+		}
+	}
+
 	// Main loop
 	while (!caughtSignal && (args.forever || time(NULL) <= time_start + args.recsec)) {
-		usleep(750000);
-		const void *buf = NULL;
-		int rlen = usbDev->getStream(&buf);
+		usleep(500000);
+		rlen = usbDev->getStream((const void **)&buf);
+
 		if (0 == rlen) continue;
 #ifdef B25
 			// B25を経由して受け取る
 			if (args.b25) {
-				const uint8_t *b25buf = (const uint8_t *)buf;
-				b25dec.put(b25buf, rlen);
-				rlen = b25dec.get(&b25buf);
+				uint8_t *b25buf;
+				b25dec.put(buf, rlen);
+				rlen = b25dec.get((const uint8_t **)&b25buf);
 				if (0 == rlen) {
 					continue;
 				}
 				buf = b25buf;
 			}
 #endif /* defined(B25) */
+			if (args.splitter) {
+				splitbuf.size = 0;
+				if( splitbuf.allocation_size < rlen ){
+					free( splitbuf.buffer );
+					splitbuf.buffer = (u_char *)malloc( rlen );
+					splitbuf.allocation_size = rlen;
+				}
+				ubuf.size = rlen;
+				ubuf.data = buf;
+
+				/* 分離対象PIDの抽出 */
+				if(split_select_finish != TSS_SUCCESS) {
+					split_select_finish = split_select(sp, &ubuf);
+					if(split_select_finish == TSS_NULL) {
+						/* mallocエラー発生 */
+						log << "split_select malloc failed" << std::endl;
+						args.splitter = false;
+						rlen = ubuf.size;
+						buf = ubuf.data;
+						free( splitbuf.buffer );
+						split_shutdown(sp);
+						goto fin;
+					}
+					else if(split_select_finish != TSS_SUCCESS) {
+						/* 分離対象PIDが完全に抽出できるまで出力しない
+						 * 1秒程度余裕を見るといいかも
+						 */
+						time_t cur_time;
+						time(&cur_time);
+						if(cur_time - time_start > 4) {
+							args.splitter = false;
+							rlen = ubuf.size;
+							buf = ubuf.data;
+							free( splitbuf.buffer );
+							split_shutdown(sp);
+							goto fin;
+						}
+						// 保持しないといかんかな？
+						ubuf.size = 0;
+						continue;
+					}
+				}
+				/* 分離対象以外をふるい落とす */
+				code = split_ts(sp, &ubuf, &splitbuf);
+				if(code == TSS_NULL) {
+//					split_select_finish = TSS_ERROR;
+					log << "PMT reading.." << std::endl;
+				}
+				else if(code != TSS_SUCCESS) {
+					log << "split_ts failed" << std::endl;
+				}
+
+				rlen = splitbuf.size;
+				buf = (uint8_t *)splitbuf.buffer;
+	fin:;
+			} /* if */
 
 		if(args.verbose) {
 			log << "Sequence = " << (unsigned)pDev->DeMod_GetSequenceState() << ", Quality = " << 0.02*pDev->DeMod_GetQuality()
@@ -221,19 +336,45 @@ int main(int argc, char **argv)
 	saDefault.sa_handler = SIG_DFL;
 	sigaction(SIGINT,  &saDefault, NULL);
 	sigaction(SIGTERM, &saDefault, NULL);
+	rlen = 0;
+	buf = NULL;
+
 
 #ifdef B25
 	// B25Decoder flush Data
 	if (args.b25) {
 		b25dec.flush();
-		const uint8_t *buf = NULL;
-		int rlen = b25dec.get(&buf);
-		if (0 < rlen) {
-			fwrite(buf, 1, rlen, dest);
-		}
+		rlen = b25dec.get((const uint8_t **)&buf);
 	}
 #endif /* defined(B25) */
-
+	if(args.splitter) {
+		if( rlen ){
+			if( splitbuf.allocation_size < rlen ){
+				free( splitbuf.buffer );
+				splitbuf.buffer = (u_char *)malloc( rlen );
+				splitbuf.allocation_size = rlen;
+			}
+			ubuf.size = rlen;
+			ubuf.data = buf;
+			/* 分離対象以外をふるい落とす */
+			code = split_ts(sp, &ubuf, &splitbuf);
+			if(code == TSS_NULL) {
+//				split_select_finish = TSS_ERROR;
+				log << "PMT reading.." << std::endl;
+			}else {
+				if(code == TSS_SUCCESS) {
+					log << "split_ts failed" << std::endl;
+				}
+			}
+			rlen = splitbuf.size;
+			buf = (uint8_t *)splitbuf.buffer;
+		}
+		free( splitbuf.buffer );
+		split_shutdown(sp);
+	}
+	if (0 < rlen) {
+		fwrite(buf, 1, rlen, dest);
+	}
 	// 録画時間の測定
 	time_t time_end = time(NULL);
 

@@ -8,8 +8,10 @@ ifdef B25
 endif
 
 CXX	= g++
-CXXFLAGS = -g -Wall -pthread -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 $(B25)
-OBJS	= fsusb2n.o usbops.o em2874-core.o ktv.o IoThread.o $(B25_OBJS)
+CXXFLAGS = -O2 -march=native -g -Wall -pthread -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 $(B25)
+CC	= gcc
+CFLAGS  = -O2 -march=native -g -Wall -pthread -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 $(B25)
+OBJS	= fsusb2n.o usbops.o em2874-core.o ktv.o IoThread.o tssplitter_lite.o $(B25_OBJS)
 #LIBS	= -lpthread -lboost_system -lboost_thread-mt -lboost_filesystem
 LIBS	= -lpthread -lboost_thread-mt -lboost_filesystem
 TARGET	= recfsusb2n

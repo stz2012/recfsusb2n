@@ -1,5 +1,10 @@
-decoder.h tssplitter_lite.cpp tssplitter_lite.h Makefileの4ファイルをコピーしてtssplitter_lite.diffでパッチを当ててください。
+差分のみのアーカイブです。オリジナルに上書して下さい。
 
-このパッチで増えるオプションは、"--sid"・"--trim"の２つです。
-"--sid"は、recpt1のそれに加えEPG出力に必要なpidを保存する"epg"が追加されています。
-"--trim"は、受信の冒頭から指定数のパケットを大雑把に廃棄します。千単位ぐらいで指定してください。
+
+[変更点]
+・recpt1ctlに対応
+・チューニング完了判定の数値を変更（"pDev->DeMod_GetSequenceState() < 8"の8を9に）
+・受信開始時安定化待ち処理追加
+・httpサーバ機能移植(--http poronumber)
+・tssplitter_liteを内臓(--sid n1,n2,.. number,all,hd,sd1,sd2,sd3,1seg,epg)
+・受信開始前にウェイトを入れるオプションを追加(--wait n[1=100mSec])

@@ -3,7 +3,15 @@
 #ifndef _USB_OPS_HPP_
 #define _USB_OPS_HPP_
 
+#include <linux/version.h>
+#if LINUX_VERSION_CODE <= KERNEL_VERSION(2, 4, 20)
+#include <usb.h>
+#include <linux/usb.h>
+#elif LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 21)
+#include <linux/usb_ch9.h>
+#else
 #include <linux/usb/ch9.h>
+#endif
 #include <linux/usbdevice_fs.h>
 //#include <string>
 

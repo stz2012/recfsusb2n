@@ -1,8 +1,0 @@
-fsusb2n.o: fsusb2n.cpp ktv.hpp em2874-core.hpp IoThread.hpp usbops.hpp
-usbops.o: usbops.cpp usbops.hpp
-em2874-core.o: em2874-core.cpp usbops.hpp em2874-core.hpp IoThread.hpp
-ktv.o: ktv.cpp ktv.hpp em2874-core.hpp IoThread.hpp usbops.hpp \
- em2874-card.hpp
-IoThread.o: IoThread.cpp usbops.hpp IoThread.hpp
-B25Decoder.o: B25Decoder.cpp arib25/arib_std_b25.h arib25/portable.h \
- arib25/b_cas_card.h arib25/b_cas_card.h B25Decoder.hpp

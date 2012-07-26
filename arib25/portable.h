@@ -1,5 +1,3 @@
-/* linux向けに改変 */
-
 #ifndef PORTABLE_H
 #define PORTABLE_H
 

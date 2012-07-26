@@ -1,363 +1,372 @@
-�y���́z
+【名称】
 
-�@ARIB STD-B25 �d�l�m�F�e�X�g�v���O�����\�[�X�R�[�h
+　ARIB STD-B25 仕様確認テストプログラムソースコード
 
-�y�o�[�W�����z
+【バージョン】
 
-�@0.2.3
+　0.2.5
 
-�y��ҁz
+【作者】
 
-�@�Ζ� �a�m (MOGI, Kazuhiro) 
-�@kazhiro@marumo.ne.jp
+　茂木 和洋 (MOGI, Kazuhiro) 
+　kazhiro@marumo.ne.jp
 
-�y�ꎟ�z�z���z
+【一次配布元】
 
-�@http://www.marumo.ne.jp/db2008_c.htm#30
+　http://www.marumo.ne.jp/db2012_2.htm#13 又は
 
-�@���邢��
+　あるいは
 
-�@http://www.marumo.ne.jp/junk/arib_std_b25-0.2.3.lzh
+　http://www.marumo.ne.jp/junk/arib_std_b25-0.2.5.lzh
 
-�y�ړI�z
+【目的】
 
-�@ARIB STD-B25 �̎d�l�𗝉�����ׂ́A�Q�l�p�̎����Ƃ��Č��J
+　ARIB STD-B25 の仕様を理解する為の、参考用の実装として公開
 
-�y�w�i�z
+【背景】
 
-�@2011 �N 7 ���̒n��A�i���O������g���T���A�����Ȓn��f�W�^������
-�@��M�@�̔̔����҂���Ă���
+　2011 年 7 月の地上アナログ放送停波を控え、廉価な地上デジタル放送
+　受信機の販売が待たれている
 
-�@�������AARIB �̕W�������͂킴�Ɣ���ɂ��������ĊJ����������܂�
-�@�悤�Ƃ��Ă���Ƃ����v���Ȃ��قǂɈӖ��s���ĂȋL�q�ɂȂ��Ă���
-�@���̂܂܂ł͒ቿ�i��M�@�̊J���ȂǕs�\�Ɏv����
+　しかし、ARIB の標準文書はわざと判りにくく書いて開発費をかさませ
+　ようとしているとしか思えないほどに意味不明瞭な記述になっており
+　このままでは低価格受信機の開発など不可能に思える
 
-�@�����ŁA�����Ȃ�� ARIB �W��������ǂ݁A���������͈͂��\�[�X
-�@�R�[�h�̌`�ɂ܂Ƃ߂Č��J���邱�Ƃɂ���
+　そこで、自分なりに ARIB 標準文書を読み、理解した範囲をソース
+　コードの形にまとめて公開することにした
 
-�@���̃R�[�h�������Ȏ�M�@�̊J���̈ꏕ�ƂȂ邱�Ƃ����҂���
+　このコードが安価な受信機の開発の一助となることを期待する
 
-�@�Ȃ��A�����܂ł��d�l������ړI�Ƃ������̂ł��邽�߁A�r���h�ς�
-�@�o�C�i���t�@�C���͔z�z���Ȃ�
+　なお、あくまでも仕様理解を目的としたものであるため、ビルド済み
+　バイナリファイルは配布しない
 
-�y���������͈́z
+【実装した範囲】
 
-�@CA �V�X�e�� (B-CAS �J�[�h�֘A) �𒆐S�� ECM(table_id=0x82) �̏�����
-�@�X�g���[���Í��̕��������AEMM(table_id=0x84) �̏����܂ł���������
+　CA システム (B-CAS カード関連) を中心に ECM(table_id=0x82) の処理と
+　ストリーム暗号の復号処理、EMM(table_id=0x84) の処理までを実装した
 
-�@EMM ���b�Z�[�W (table_id=0x85) �֘A�͖������ƂȂ��Ă���
+　EMM メッセージ (table_id=0x85) 関連は未実装となっている
 
-�y�v���O�����̓�����z
+【プログラムの動作環境】
 
-�@ISO 7816 �Ή��� IC �J�[�h���[�_���C���X�g�[�����ꂽ Windows PC ��
-�@�z�蓮����Ƃ���
+　ISO 7816 対応の IC カードリーダがインストールされた Windows PC を
+　想定動作環境とする
 
-�@ISO 7816 �Ή��X�}�[�g�J�[�h���[�_�[�͈�ʂ�
-�@�u�Z��J�[�h�Ή� IC �J�[�h���[�_�v�ue-Tax �Ή� IC �J�[�h���[�_�v
-�@�ȂǂƂ��� 4000 �~���x�Ŕ̔�����Ă�����̂����p�\�ł���
+　ISO 7816 対応スマートカードリーダーは一般に
+　「住基カード対応 IC カードリーダ」「e-Tax 対応 IC カードリーダ」
+　などとして 4000 円程度で販売されているものが利用可能である
 
-�@�����}�N�Z������ HX-520UJJ �Ő���ɓ��삷�邱�Ƃ��m�F���Ă���
+　日立マクセル製の HX-520UJJ と NTT コミュニケーションズの SCR3310 
+　で正常に動作することを確認している
 
-�y�\�[�X�R�[�h�̃��C�Z���X�ɂ��āz
+【ソースコードのライセンスについて】
 
-�@�E�\�[�X�R�[�h�𗘗p�������Ƃɂ���āA������̃g���u�����������Ă�
-�@�@�Ζ� �a�m�͐ӔC�𕉂�Ȃ�
-�@�E�\�[�X�R�[�h�𗘗p�������Ƃɂ���āA�v���O�����ɖ�肪�������Ă�
-�@�@�Ζ� �a�m�͐ӔC�𕉂�Ȃ�
+　・ソースコードを利用したことによって、特許上のトラブルが発生しても
+　　茂木 和洋は責任を負わない
+　・ソースコードを利用したことによって、プログラムに問題が発生しても
+　　茂木 和洋は責任を負わない
 
-�@��L 2 �����ɓ��ӂ��č쐬���ꂽ�񎟓I���앨�ɑ΂��āA�Ζ� �a�m��
-�@������҂ɗ^�����鏔�������s�g���Ȃ�
+　上記 2 条件に同意して作成された二次的著作物に対して、茂木 和洋は
+　原著作者に与えられる諸権利を行使しない
 
-�y�v���O�����̍\���z
+【プログラムの構成】
 
-�@�Earib_std_b25.h/c
+　・arib_std_b25.h/c
 
-�@�@ARIB STD-B25 �L�ڂ̏������s�����߂̃��W���[��
-�@�@MPEG-2 TS �̕����ACA �V�X�e�� (B-CAS �J�[�h) �@�\�̌Ăяo���A
-�@�@MULTI2 �����@�\�̌Ăяo������S������
+　　ARIB STD-B25 記載の処理を行うためのモジュール
+　　MPEG-2 TS の分離、CA システム (B-CAS カード) 機能の呼び出し、
+　　MULTI2 復号機能の呼び出し等を担当する
 
-�@�Ets_section_parser.h/c
+　・ts_section_parser.h/c
 
-�@�@MPEG-2 TS �̃Z�N�V�����`���f�[�^�̕���������S������
+　　MPEG-2 TS のセクション形式データの分割処理を担当する
 
-�@�Eb_cas_card.h/c
+　・b_cas_card.h/c
 
-�@�@CA �V�X�e�� (B-CAS �J�[�h) �̃��\�[�X�Ǘ�����ђ��ڂ̐����
-�@�@�S������
+　　CA システム (B-CAS カード) のリソース管理および直接の制御を
+　　担当する
 
-�@�Emulti2.h/c
+　・multi2.h/c
 
-�@�@MULTI2 �Í��̕������ƕ�����S������
+　　MULTI2 暗号の符号化と復号を担当する
 
-�@�Etd.c
+　・td.c
 
-�@�@�e�X�g�h���C�o
-�@�@PAT/PMT/ECM ���܂� MPEG-2 TS �t�@�C����ǂݍ��݁A�������
-�@�@MPEG-2 TS �t�@�C�����o�͂���
+　　テストドライバ
+　　PAT/PMT/ECM を含む MPEG-2 TS ファイルを読み込み、復号後の
+　　MPEG-2 TS ファイルを出力する
 
-�@�@�R�}���h���C���I�v�V������ MULTI2 �Í��̃��E���h�����w��\
-�@�@���E���h�����w�肵�Ȃ��ꍇ�̏����l�� 4
+　　コマンドラインオプションで MULTI2 暗号のラウンド数を指定可能
+　　ラウンド数を指定しない場合の初期値は 4
 
-�@�@���̃��E���h�� 4 �� MULTI2 �p��ł� 32 �ɑ�������
-
-�@�@ARIB STD-B25 �ł� MULTI2 �̃��E���h���͔���J�p�����[�^����
-�@�@��������Ŏ��ۂ̃��E���h���͐���\�ł���
+　　このラウンド数 4 は MULTI2 用語では 32 に相当する
 
-�y�����̗���z
+　　ARIB STD-B25 では MULTI2 のラウンド数は非公開パラメータだが
+　　総当たりで実際のラウンド数は推定可能である
 
-�@�E�N����
+【処理の流れ】
 
-�@�@1 �A�v���P�[�V������ B_CAS_CARD ���W���[���̃C���X�^���X��
-�@�@�@�쐬���AB_CAS_CARD ���W���[���ɁA���������˗�����
+　・起動時
 
-�@�@1.a B_CAS_CARD ���W���[���� WIN32 API �̃X�}�[�g�J�[�h�֘A
-�@�@�@�@API ���Ăяo���ACA �V�X�e���ɐڑ�����
-�@�@1.b B_CAS_CARD ���W���[���� ARIB STD-B25 �L�ڂ́u��������
-�@�@�@�@�ݒ�R�}���h�� CA �V�X�e���ɔ��s���A�V�X�e���� (64 byte)
-�@�@�@�@���� CBC ��� (8 byte) ���󂯎�� 
+　　1 アプリケーションは B_CAS_CARD モジュールのインスタンスを
+　　　作成し、B_CAS_CARD モジュールに、初期化を依頼する
 
-�@�@2 �A�v���P�[�V������ ARIB_STD_B25 ���W���[���̃C���X�^���X��
-�@�@�@�쐬���AB_CAS_CARD ���W���[���� ARIB_STD_B25 ���W���[����
-�@�@�@�o�^����
+　　1.a B_CAS_CARD モジュールは WIN32 API のスマートカード関連
+　　　　API を呼び出し、CA システムに接続する
+　　1.b B_CAS_CARD モジュールは ARIB STD-B25 記載の「初期条件
+　　　　設定コマンドを CA システムに発行し、システム鍵 (64 byte)
+　　　　初期 CBC 状態 (8 byte) を受け取る 
 
-�@�E�f�[�^������
+　　2 アプリケーションは ARIB_STD_B25 モジュールのインスタンスを
+　　　作成し、B_CAS_CARD モジュールを ARIB_STD_B25 モジュールに
+　　　登録する
 
-�@�@1 �A�v���P�[�V������ ARIB_STD_B25 ���W���[���ɏ����f�[�^��
-�@�@�@�񋟂��AARIB_STD_B25 ���W���[�����珈�������f�[�^����
-�@�@�@����ăt�@�C���ɏo�͂��Ă���
+　・データ処理時
 
-�@�@�EARIB_STD_B25 ���W���[����
+　　1 アプリケーションは ARIB_STD_B25 モジュールに順次データを
+　　　提供し、ARIB_STD_B25 モジュールから処理完了データを受け
+　　　取ってファイルに出力していく
 
-�@�@�@1 TS �p�P�b�g�̃��j�b�g�T�C�Y (188/192/204 �Ȃǂ���ʓI) ��
-�@�@�@�@���肳��Ă��Ȃ��ꍇ 8K �܂œ��̓f�[�^���o�b�t�@���Ă���A
-�@�@�@�@���j�b�g�T�C�Y����肷��
-�@�@�@�@���j�b�g�T�C�Y������ł��Ȃ������ꍇ�́A�G���[�I������
+　　・ARIB_STD_B25 モジュール内
 
-�@�@�@2 PAT ����������Ă��Ȃ��ꍇ�APAT �������ł���܂œ���
-�@�@�@�@�f�[�^���o�b�t�@��������
-�@�@�@�@PAT �������ł����Ƀo�b�t�@�T�C�Y�� 16M �𒴉߂����ꍇ
-�@�@�@�@�G���[�I������
-�@�@�@�@PAT �������ł����ꍇ�A�v���O�����z����쐬�� PID �}�b�v
-�@�@�@�@�z��ɓo�^����
+　　　1 TS パケットのユニットサイズ (188/192/204 などが一般的) が
+　　　　特定されていない場合 8K まで入力データをバッファしてから、
+　　　　ユニットサイズを特定する
+　　　　ユニットサイズが特定できなかった場合は、エラー終了する
 
-�@�@�@3 PAT �ɓo�^����Ă��� PMT ���ׂĂ���������邩�A�ǂꂩ
-�@�@�@�@�ЂƂ� PMT �� 2 �ڂ̃Z�N�V��������������܂œ���
-�@�@�@�@�f�[�^���o�b�t�@��������
-�@�@�@�@��L�����𖞂������Ƀo�b�t�@�T�C�Y�� 32M �𒴉߂����ꍇ
-�@�@�@�@�G���[�I������
-�@�@�@�@PMT ���������閈�� ECM �̗L�����m�F���AECM �����݂���
-�@�@�@�@�ꍇ�̓f�N���v�^���쐬���ăv���O�����ɏ�������X�g���[��
-�@�@�@�@�� PID �}�b�v��Ŋ֘A�t����
+　　　2 PAT が発見されていない場合、PAT が発見できるまで入力
+　　　　データをバッファし続ける
+　　　　PAT が発見できずにバッファサイズが 16M を超過した場合
+　　　　エラー終了する
+　　　　PAT が発見できた場合、プログラム配列を作成し PID マップ
+　　　　配列に登録する
 
-�@�@�@4 PMT �ɓo�^����Ă��� ECM ���ׂĂ���������邩�A�ǂꂩ
-�@�@�@�@�ЂƂ� ECM �� 2 �ڂ̃Z�N�V��������������܂œ���
-�@�@�@�@�f�[�^���o�b�t�@��������
-�@�@�@�@��L�����𖞂������Ƀo�b�t�@�T�C�Y�� 32M �𒴉߂����ꍇ
-�@�@�@�@�G���[�I������
-�@�@�@�@�e ECM �ɑ΂��āA�ŏ��̃Z�N�V�����f�[�^�������������_��
-�@�@�@�@MULTI2 ���W���[���̃C���X�^���X���f�N���v�^��ɍ쐬����
-�@�@�@�@ECM �Z�N�V�����f�[�^�� B_CAS_CARD ���W���[���ɒ񋟂���
-�@�@�@�@�X�N�����u�������󂯎��AMULTI2 ���W���[���ɃV�X�e�����A
-�@�@�@�@���� CBC ��ԁA�X�N�����u������n���AMULTI2 �����̏�����
-�@�@�@�@�s��
+　　　3 PAT に登録されていた PMT すべてが発見されるか、どれか
+　　　　ひとつの PMT で 2 個目のセクションが到着するまで入力
+　　　　データをバッファし続ける
+　　　　上記条件を満たさずにバッファサイズが 32M を超過した場合
+　　　　エラー終了する
+　　　　PMT が到着する毎に ECM の有無を確認し、ECM が存在する
+　　　　場合はデクリプタを作成してプログラムに所属するストリーム
+　　　　と PID マップ上で関連付ける
 
-�@�@�@5.a �Í�������Ă��� TS �p�P�b�g�ł���΁APID ����Ή�
-�@�@�@�@�@ECM �X�g���[������肵�A�f�N���v�^�� MULTI2 ���W���[
-�@�@�@�@�@���ɕ��������ďo�̓o�b�t�@�ɐς�
-�@�@�@�@
-�@�@�@5.b �Í�������Ă��Ȃ� TS �p�P�b�g�ł���΁A���̂܂܏o��
-�@�@�@�@�@�o�b�t�@�ɐς�
+　　　4 PMT に登録されていた ECM すべてが発見されるか、どれか
+　　　　ひとつの ECM で 2 個目のセクションが到着するまで入力
+　　　　データをバッファし続ける
+　　　　上記条件を満たさずにバッファサイズが 32M を超過した場合
+　　　　エラー終了する
+　　　　各 ECM に対して、最初のセクションデータが到着した時点で
+　　　　MULTI2 モジュールのインスタンスをデクリプタ上に作成する
+　　　　ECM セクションデータは B_CAS_CARD モジュールに提供して
+　　　　スクランブル鍵を受け取り、MULTI2 モジュールにシステム鍵、
+　　　　初期 CBC 状態、スクランブル鍵を渡し、MULTI2 復号の準備を
+　　　　行う
 
-�@�@�@5.c CAT �����o�����ꍇ�AEMM �� PID ���擾���� EMM �̏���
-�@�@�@�@�@�������s��
+　　　5.a 暗号化されている TS パケットであれば、PID から対応
+　　　　　ECM ストリームを特定し、デクリプタの MULTI2 モジュー
+　　　　　ルに復号させて出力バッファに積む
+　　　　
+　　　5.b 暗号化されていない TS パケットであれば、そのまま出力
+　　　　　バッファに積む
 
-�@�@�@5.d EMM ���󂯎�����ꍇ�AB-CAS �J�[�h ID �Ɣ�r���A����
-�@�@�@�@�@���Ă� EMM �ł���� B-CAS �J�[�h�Ɉ����n���ď���������
-�@�@�@�@�@# EMM �����I�v�V�������w�肳��Ă���ꍇ
+　　　5.c CAT を検出した場合、EMM の PID を取得して EMM の処理
+　　　　　準備を行う
 
-�@�@�@6 ECM ���X�V���ꂽ�ꍇ�AB_CAS_CARD ���W���[���ɏ�����
-�@�@�@�@�˗����A�o�͂��ꂽ�X�N�����u������ MULTI2 ���W���[����
-�@�@�@�@�o�^����
+　　　5.d EMM を受け取った場合、B-CAS カード ID と比較し、自分
+　　　　　宛ての EMM であれば B-CAS カードに引き渡して処理させる
+　　　　　# EMM 処理オプションが指定されている場合
 
-�@�@�@7 PMT ���X�V���ꂽ�ꍇ�AECM PID ���ω����Ă���ΐV����
-�@�@�@�@�f�N���v�^���쐬���� 4 �ɖ߂�
+　　　6 ECM が更新された場合、B_CAS_CARD モジュールに処理を
+　　　　依頼し、出力されたスクランブル鍵を MULTI2 モジュールに
+　　　　登録する
 
-�@�@�@8 PAT ���X�V���ꂽ�ꍇ�A�v���O�����z���j������
-�@�@�@�@3 �ɖ߂�
+　　　7 PMT が更新された場合、ECM PID が変化していれば新たに
+　　　　デクリプタを作成して 4 に戻る
 
-�@�E�I����
+　　　8 PAT が更新された場合、プログラム配列を破棄して
+　　　　3 に戻る
 
-�@�@1 �e���W���[�����m�ۂ������\�[�X���������
+　・終了時
 
-�y�X�V�����z
+　　1 各モジュールが確保したリソースを解放する
 
-�@�E2009, 4/19 - ver. 0.2.4
+【更新履歴】
 
-�@�@�I�[�p�P�b�g����ǃp�P�b�g (PMT �ɋL�ڂ���Ă��Ȃ� PID ��
-�@�@�p�P�b�g) �������ꍇ�ɁAECM �� 1 �����ł��������s���Ȃ�
-�@�@�o�O���C��
+　・2012, 2/13 - ver. 0.2.5
 
-�@�@transport_error_indicator �������Ă���ꍇ�̓p�P�b�g������
-�@�@�s�킸�A���̂܂ܑf�ʂ�����悤�ɕύX
+　　WOWOW でノンスクランブル <-> スクランブル切り替え後に復号が
+　　行われないことがあるバグを修正
 
-�@�@http://www.marumo.ne.jp/db2009_4.htm#19 ����
-�@�@http://www.marumo.ne.jp/junk/arib_std_b25-0.2.4.lzh
+　　http://www.marumo.ne.jp/db2012_2.htm#13 又は
+　　http://www.marumo.ne.jp/junk/arib_std_b25-0.2.5.lzh
 
-�@�E2008, 12/30 - ver. 0.2.3
+　・2009, 4/19 - ver. 0.2.4
 
-�@�@CA_descriptor �̉��߂��s���ۂ� CA_system_id �� B-CAS �J�[�h
-�@�@����擾�������̂ƈ�v���邩�m�F���s���悤�ɕύX
+　　終端パケットが野良パケット (PMT に記載されていない PID の
+　　パケット) だった場合に、ECM が 1 つだけでも復号が行われない
+　　バグを修正
 
-�@�@http://www.marumo.ne.jp/db2008_c.htm#30 ����
-�@�@http://www.marumo.ne.jp/junk/arib_std_b25-0.2.3.lzh
+　　transport_error_indicator が立っている場合はパケット処理を
+　　行わず、そのまま素通しするように変更
 
-�@�E2008, 11/10 - ver. 0.2.2
+　　http://www.marumo.ne.jp/db2009_4.htm#19 又は
+　　http://www.marumo.ne.jp/junk/arib_std_b25-0.2.4.lzh
 
-�@�@�C�������E�X������N�����ւ̕ϊ���������萳�m�Ȃ��̂֕ύX
+　・2008, 12/30 - ver. 0.2.3
 
-�@�@TS �p�P�b�g�T�C�Y�̓�����@��ύX
+　　CA_descriptor の解釈を行う際に CA_system_id が B-CAS カード
+　　から取得したものと一致するか確認を行うように変更
 
-�@�@http://www.marumo.ne.jp/db2008_b.htm#10 ����
-�@�@http://www.marumo.ne.jp/junk/arib_std_b25-0.2.2.lzh
+　　http://www.marumo.ne.jp/db2008_c.htm#30 又は
+　　http://www.marumo.ne.jp/junk/arib_std_b25-0.2.3.lzh
 
-�@�E2008, 4/9 - ver. 0.2.1
+　・2008, 11/10 - ver. 0.2.2
 
-�@�@PAT �X�V���ɕ����R�ꂪ�������Ă����o�O���C��
-�@�@(ver. 0.2.0 �ł̃G���o�O)
+　　修正ユリウス日から年月日への変換処理をより正確なものへ変更
 
-�@�@��� PID (PMT �ɋL�ڂ���Ă��Ȃ��X�g���[��) �����݂����ꍇ
-�@�@TS ���� ECM ���ЂƂ����Ȃ�΁A���� ECM �ŕ�������`�ɕύX
+　　TS パケットサイズの特定方法を変更
 
-�@�@EMM �� B-CAS �J�[�h�ւ̑��M���I�v�V�����őI���\�ɕύX (-m)
-�@�@�i���󋵂̕\�����I�v�V�����őI���\�ɕύX (-v)
-�@�@�ʓd������ (EMM��M�p) ��\������I�v�V������ǉ� (-p)
+　　http://www.marumo.ne.jp/db2008_b.htm#10 又は
+　　http://www.marumo.ne.jp/junk/arib_std_b25-0.2.2.lzh
 
-�@�@http://www.marumo.ne.jp/db2008_4.htm#9 ����
-�@�@http://www.marumo.ne.jp/junk/arib_std_b25-0.2.1.lzh
+　・2008, 4/9 - ver. 0.2.1
 
-�@�E2008, 4/6 - ver. 0.2.0
+　　PAT 更新時に復号漏れが発生していたバグを修正
+　　(ver. 0.2.0 でのエンバグ)
 
-�@�@EMM �Ή�
-�@�@���p���� B-CAS �J�[�h ID ������ EMM �����o�����ꍇ�AEMM ��
-�@�@B-CAS �J�[�h�ɓn��������ǉ�
+　　野良 PID (PMT に記載されていないストリーム) が存在した場合
+　　TS 内の ECM がひとつだけならば、その ECM で復号する形に変更
 
-�@�@ECM �����̍ۂɖ��_�񉞓����Ԃ��ꂽ�ꍇ�A�������׌y���ׁ̈A
-�@�@�ȍ~�A���� PID �� ECM �� B-CAS �J�[�h�ŏ������Ȃ��悤�ɕ�
-�@�@�X (EMM �����������ꍇ�͍Ă� ECM ����������悤�ɖ߂�)
+　　EMM の B-CAS カードへの送信をオプションで選択可能に変更 (-m)
+　　進捗状況の表示をオプションで選択可能に変更 (-v)
+　　通電制御情報 (EMM受信用) を表示するオプションを追加 (-p)
 
-�@�@�i���� nn.nn% �̏����ŕW���G���[�o�͂ɕ\������悤�ɕύX
-�@�@
-�@�@http://www.marumo.ne.jp/db2008_4.htm#6 ����
-�@�@http://www.marumo.ne.jp/junk/arib_std_b25-0.2.0.lzh
+　　http://www.marumo.ne.jp/db2008_4.htm#9 又は
+　　http://www.marumo.ne.jp/junk/arib_std_b25-0.2.1.lzh
 
-�@�E2008, 3/31 - ver. 0.1.9
+　・2008, 4/6 - ver. 0.2.0
 
-�@�@MULTI2 ���W���[���̃C���X�^���X�����쐻�̏󋵂ŁAMULTI2 ��
-�@�@�@�\���Ăяo���ė�O�𔭐������邱�Ƃ��������o�O���C��
+　　EMM 対応
+　　利用中の B-CAS カード ID 向けの EMM を検出した場合、EMM を
+　　B-CAS カードに渡す処理を追加
 
-�@�@# �p�b�`��񋟂��Ă��ꂽ���Ɋ���
+　　ECM 処理の際に未契約応答が返された場合、処理負荷軽減の為、
+　　以降、その PID の ECM を B-CAS カードで処理しないように変
+　　更 (EMM を処理した場合は再び ECM を処理するように戻す)
 
-�@�@http://www.marumo.ne.jp/db2008_3.htm#31 ����
-�@�@http://www.marumo.ne.jp/junk/arib_std_b25-0.1.9.lzh
+　　進捗を nn.nn% の書式で標準エラー出力に表示するように変更
+　　
+　　http://www.marumo.ne.jp/db2008_4.htm#6 又は
+　　http://www.marumo.ne.jp/junk/arib_std_b25-0.2.0.lzh
 
-�@�E2008, 3/24 - ver. 0.1.8
+　・2008, 3/31 - ver. 0.1.9
 
-�@�@-s �I�v�V���� (NULL �p�P�b�g�̍폜) ��ǉ�
-�@�@-s 1 �� NULL �p�P�b�g���o�̓t�@�C���ɂ͕ۑ����Ȃ��Ȃ�
-�@�@�f�t�H���g�� -s 0 �� NULL �p�P�b�g�ێ�
+　　MULTI2 モジュールのインスタンスが未作製の状況で、MULTI2 の
+　　機能を呼び出して例外を発生させることがあったバグを修正
 
-�@�@http://www.marumo.ne.jp/db2008_3.htm#24 ����
-�@�@http://www.marumo.ne.jp/junk/arib_std_b25-0.1.8.lzh
+　　# パッチを提供してくれた方に感謝
 
-�@�E2008, 3/17 - ver. 0.1.7
+　　http://www.marumo.ne.jp/db2008_3.htm#31 又は
+　　http://www.marumo.ne.jp/junk/arib_std_b25-0.1.9.lzh
 
-�@�@arib_std_b25.h �Ɂuextern "C" {�v�����R�[�h���Ȃ�������� 
-�@�@(C++ �R�[�h���痘�p����ꍇ�ɃR���p�C���G���[�𔭐�������) ��
-�@�@�C��
+　・2008, 3/24 - ver. 0.1.8
 
-�@�@TS �p�P�b�g�̒��r�ŃX�g���[�����؂�ւ��P�[�X�Ŗ�肪������
-�@�@�ɂ����Ȃ�悤�ɁAarib_std_b25.c ���̃R�[�h���C��
+　　-s オプション (NULL パケットの削除) を追加
+　　-s 1 で NULL パケットを出力ファイルには保存しなくなる
+　　デフォルトは -s 0 の NULL パケット保持
 
-�@�@http://www.marumo.ne.jp/db2008_3.htm#17 ����
-�@�@http://www.marumo.ne.jp/junk/arib_std_b25-0.1.7.lzh
+　　http://www.marumo.ne.jp/db2008_3.htm#24 又は
+　　http://www.marumo.ne.jp/junk/arib_std_b25-0.1.8.lzh
 
-�@�E2008, 3/16 - ver. 0.1.6
+　・2008, 3/17 - ver. 0.1.7
 
-�@�@PMT �X�V�̍ہAECM �֘A�̏󋵂��ύX (�X�N�����u�� - �m���X�N
-�@�@�����u���̐؂�ւ���AECM PID �̕ύX��) ���s���Ă��A���ꂪ
-�@�@���f����Ă��Ȃ����������C��
+　　arib_std_b25.h に「extern "C" {」を閉じるコードがなかった問題 
+　　(C++ コードから利用する場合にコンパイルエラーを発生させる) を
+　　修正
 
-�@�@http://www.marumo.ne.jp/db2008_3.htm#16 ����
-�@�@http://www.marumo.ne.jp/junk/arib_std_b25-0.1.6.lzh
+　　TS パケットの中途でストリームが切り替わるケースで問題が発生し
+　　にくくなるように、arib_std_b25.c 内のコードを修正
 
-�@�E2008, 2/14
+　　http://www.marumo.ne.jp/db2008_3.htm#17 又は
+　　http://www.marumo.ne.jp/junk/arib_std_b25-0.1.7.lzh
 
-�@�@readme.txt (���̃t�@�C��) ���C��
-�@�@�\�[�X�R�[�h�̃��C�Z���X�ɂ��Ă̋L�q��ǉ�
+　・2008, 3/16 - ver. 0.1.6
 
-�@�E2008, 2/12 - ver. 0.1.5
+　　PMT 更新の際、ECM 関連の状況が変更 (スクランブル - ノンスク
+　　ランブルの切り替えや、ECM PID の変更等) が行われても、それが
+　　反映されていなかった問題を修正
 
-�@�@PMT �̍X�V�ɔ����A�ǂ̃v���O�����ɂ��������Ȃ��Ȃ��� PID (�X�g
-�@�@���[��) �Ńp�P�b�g�����M���ꑱ�����ꍇ�A���̃p�P�b�g�̕�����
-�@�@�ł��Ȃ��Ȃ��Ă��������C��
+　　http://www.marumo.ne.jp/db2008_3.htm#16 又は
+　　http://www.marumo.ne.jp/junk/arib_std_b25-0.1.6.lzh
 
-�@�@http://www.marumo.ne.jp/db2008_2.htm#12 ����
-�@�@http://www.marumo.ne.jp/junk/arib_std_b25-0.1.5.lzh
+　・2008, 2/14
 
-�@�E2008, 2/2 - ver. 0.1.4
+　　readme.txt (このファイル) を修正
+　　ソースコードのライセンスについての記述を追加
 
-�@�@ver. 0.1.3 �ł� PMT �������@�ύX�ɖ�肪����APMT ���X�V���ꂽ
-�@�@�ꍇ�A����ȍ~�Ő���ȏ������s���Ȃ��Ȃ��Ă����o�O���C��
+　・2008, 2/12 - ver. 0.1.5
 
-�@�@B-CAS �J�[�h�Ƃ̒ʐM�ŃG���[�����������ꍇ�̃��g���C�������@�\
-�@�@���Ă��Ȃ������o�O���C��
+　　PMT の更新に伴い、どのプログラムにも所属しなくなった PID (スト
+　　リーム) でパケットが送信され続けた場合、そのパケットの復号が
+　　できなくなっていた問題を修正
 
-�@�@http://www.marumo.ne.jp/db2008_2.htm#2 ����
-�@�@http://www.marumo.ne.jp/junk/arib_std_b25-0.1.4.lzh
+　　http://www.marumo.ne.jp/db2008_2.htm#12 又は
+　　http://www.marumo.ne.jp/junk/arib_std_b25-0.1.5.lzh
 
-�@�E2008, 2/1 - ver. 0.1.3
+　・2008, 2/2 - ver. 0.1.4
 
-�@�@�L���������Ŗ��_���Ԃ� B-CAS �J�[�h���g�����ۂɁA�����擾��
-�@�@���Ă��Ȃ��ɂ�������炸�A�Ԉ�������ŕ��������Ă������ɑΏ�
+　　ver. 0.1.3 での PMT 処理方法変更に問題があり、PMT が更新された
+　　場合、それ以降で正常な処理が行えなくなっていたバグを修正
 
-�@�@�����擾�ł��Ȃ����� ECM �Ɋ֘A�t����ꂽ�X�g���[���ł͕�����
-�@�@�s�킸�A�X�N�����u���t���O���c�����܂ܓ��͂�f�ʂ�����`�ɕύX
-�@�@�����擾�ł��Ȃ� ECM �����݂���ꍇ�A�I�����Ƀ`���l���ԍ���
-�@�@B-CAS �J�[�h����擾�ł����G���[�ԍ����x�����b�Z�[�W�Ƃ��ĕ\��
-�@�@����`�ɕύX
+　　B-CAS カードとの通信でエラーが発生した場合のリトライ処理が機能
+　　していなかったバグを修正
 
-�@�@�Í�������Ă��Ȃ��v���O�����ŗ�O�𔭐������Ă����o�O���C��
+　　http://www.marumo.ne.jp/db2008_2.htm#2 又は
+　　http://www.marumo.ne.jp/junk/arib_std_b25-0.1.4.lzh
 
-�@�@http://www.marumo.ne.jp/db2008_2.htm#1 ����
-�@�@http://www.marumo.ne.jp/junk/arib_std_b25-0.1.3.lzh
+　・2008, 2/1 - ver. 0.1.3
 
-�@�E2008, 1/11 - ver. 0.1.2
+　　有料放送等で未契約状態の B-CAS カードを使った際に、鍵が取得で
+　　きていないにもかかわらず、間違った鍵で復号をしていた問題に対処
 
-�@�@�f�W�^�� BS �������ŁAPAT �ɓo�^����Ă���̂ɁA�X�g���[������
-�@�@PMT ����؏o�����Ȃ����Ƃ�����ꍇ�ɑΉ�
+　　鍵が取得できなかった ECM に関連付けられたストリームでは復号を
+　　行わず、スクランブルフラグを残したまま入力を素通しする形に変更
+　　鍵が取得できない ECM が存在する場合、終了時にチャネル番号と
+　　B-CAS カードから取得できたエラー番号を警告メッセージとして表示
+　　する形に変更
 
-�@�@PMT ���̋L�q�q�̈� 2 �� CA_descriptor �����݂���ꍇ�ɑΉ�����
-�@�@���� arib_std_b25.c �����ł̏����\����ύX
+　　暗号化されていないプログラムで例外を発生させていたバグを修正
 
-�@�@�ʃv���O�����Ɠ������s���邽�߂ɃX�}�[�g�J�[�h�̔r������w���
-�@�@�ύX
+　　http://www.marumo.ne.jp/db2008_2.htm#1 又は
+　　http://www.marumo.ne.jp/junk/arib_std_b25-0.1.3.lzh
 
-�@�@http://www.marumo.ne.jp/db2008_1.htm#11 ����
-�@�@http://www.marumo.ne.jp/junk/arib_std_b25-0.1.2.lzh
+　・2008, 1/11 - ver. 0.1.2
 
-�@�E2008, 1/7 - ver. 0.1.1
+　　デジタル BS 放送等で、PAT に登録されているのに、ストリーム内で
+　　PMT が一切出現しないことがある場合に対応
 
-�@�@�Z�N�V���� (PAT/PMT/ECM ��) �������� TS �p�P�b�g�ɕ�������Ă���
-�@�@�ꍇ�ɁA����ɏ����ł��Ȃ�������A��O�𔭐��������邱�Ƃ�����
-�@�@�o�O���C��
+　　PMT 内の記述子領域 2 に CA_descriptor が存在する場合に対応する
+　　ため arib_std_b25.c 内部での処理構造を変更
 
-�@�@http://www.marumo.ne.jp/db2008_1.htm#7 ����
-�@�@http://www.marumo.ne.jp/junk/arib_std_b25-0.1.1.lzh
+　　別プログラムと同時実行するためにスマートカードの排他制御指定を
+　　変更
 
-�@�E2007, 11/25 - ver. 0.1.0
+　　http://www.marumo.ne.jp/db2008_1.htm#11 又は
+　　http://www.marumo.ne.jp/junk/arib_std_b25-0.1.2.lzh
 
-�@�@���J
+　・2008, 1/7 - ver. 0.1.1
 
-�@�@http://www.marumo.ne.jp/db2007_b.htm#25 ����
-�@�@http://www.marumo.ne.jp/junk/arib_std_b25-0.1.0.lzh
+　　セクション (PAT/PMT/ECM 等) が複数の TS パケットに分割されている
+　　場合に、正常に処理できなかったり、例外を発生をさせることがある
+　　バグを修正
+
+　　http://www.marumo.ne.jp/db2008_1.htm#7 又は
+　　http://www.marumo.ne.jp/junk/arib_std_b25-0.1.1.lzh
+
+　・2007, 11/25 - ver. 0.1.0
+
+　　公開
+
+　　http://www.marumo.ne.jp/db2007_b.htm#25 又は
+　　http://www.marumo.ne.jp/junk/arib_std_b25-0.1.0.lzh
 

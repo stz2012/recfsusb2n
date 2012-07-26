@@ -33,26 +33,26 @@ static int AnalyzePat(splitter *sp, unsigned char *buf);
 static int RecreatePat(splitter *sp, unsigned char *buf, int *pos);
 static char** AnalyzeSid(char *sid);
 static int AnalyzePmt(splitter *sp, unsigned char *buf, unsigned char mark);
-static unsigned int GetCrc32(unsigned char *data, int len);
+static int GetCrc32(unsigned char *data, int len);
 static int GetPid(unsigned char *data);
 
 /**
- * ¥µ¡¼¥Ó¥¹ID²òÀÏ
+ * ã‚µãƒ¼ãƒ“ã‚¹IDè§£æ
  */
 static char** AnalyzeSid(
-	char* sid)						// [in]		¥µ¡¼¥Ó¥¹ID(¥«¥ó¥Ş¶èÀÚ¤ê¥Æ¥­¥¹¥È)
+	char* sid)						// [in]		ã‚µãƒ¼ãƒ“ã‚¹ID(ã‚«ãƒ³ãƒåŒºåˆ‡ã‚Šãƒ†ã‚­ã‚¹ãƒˆ)
 {
 	int i = 0;
 	char** sid_list = NULL;
 	char* p;
 	int CommaNum = 0;
 
-	/* sid ¤Ï¼¡¤Î·Á¼°¤Î°ú¿ô¤òµöÍÆ¤¹¤ë */
-	/* »ØÄêÌµ¤· */
+	/* sid ã¯æ¬¡ã®å½¢å¼ã®å¼•æ•°ã‚’è¨±å®¹ã™ã‚‹ */
+	/* æŒ‡å®šç„¡ã— */
 	/* SID[0] */
 	/* SID[0],SID[1],...,SID[N-1],SID[N] */
 
-	/*¥«¥ó¥Ş¤Î¿ô¤ò¿ô¤¨¤ë*/
+	/*ã‚«ãƒ³ãƒã®æ•°ã‚’æ•°ãˆã‚‹*/
 	p = sid;
 	while(*p != '\0')
 	{
@@ -62,15 +62,15 @@ static char** AnalyzeSid(
 		p++;
 	}
 
-	/* sid_list¤Î¿ô¤Ï¥«¥ó¥Ş¤Î¿ô+2(NULL»ß¤á¤¹¤ë¤«¤é) */
-	sid_list = (char**)malloc(sizeof(char*)*(CommaNum+2));
+	/* sid_listã®æ•°ã¯ã‚«ãƒ³ãƒã®æ•°+2(NULLæ­¢ã‚ã™ã‚‹ã‹ã‚‰) */
+	sid_list = (char**)malloc(sizeof(char*) * (CommaNum + 2));
 	if ( sid_list == NULL )
 	{
 		fprintf(stderr, "AnalyzeSid() malloc error.\n");
 		return NULL;
 	}
 
-	/* sid¤¬¶õ¤Ç¤¢¤ë¾ì¹ç */
+	/* sidãŒç©ºã§ã‚ã‚‹å ´åˆ */
 	p = sid;
 	if ( strlen(p) == 0 )
 	{
@@ -78,7 +78,7 @@ static char** AnalyzeSid(
 		return sid_list;
 	}
 
-	/* ¥«¥ó¥ŞÌµ¤· */
+	/* ã‚«ãƒ³ãƒç„¡ã— */
 	if ( CommaNum == 0 )
 	{
 		sid_list[0] = sid;
@@ -86,34 +86,34 @@ static char** AnalyzeSid(
 		return sid_list;
 	}
 
-	/* ¥«¥ó¥Ş¶èÀÚ¤ê¤ÇÊ£¿ô»ØÄê»ş */
+	/* ã‚«ãƒ³ãƒåŒºåˆ‡ã‚Šã§è¤‡æ•°æŒ‡å®šæ™‚ */
 	i=0;
 	p = sid;
-	/* Ê¸»úÎóÃ¼¤ËÅşÃ£¤¹¤ë¤«¡¢¥«¥ó¥Ş¿ô¤¬¿ô¤¨¤¿¿ô¤ËÃ£¤·¤¿¤é½ªÎ» */
+	/* æ–‡å­—åˆ—ç«¯ã«åˆ°é”ã™ã‚‹ã‹ã€ã‚«ãƒ³ãƒæ•°ãŒæ•°ãˆãŸæ•°ã«é”ã—ãŸã‚‰çµ‚äº† */
 	while((*p != '\0') || i < CommaNum)
 	{
-		/* ¸½ºß¤Î½èÍı°ÌÃÖ¤òsid_list[i]¤Ë¥»¥Ã¥È */
-		/* ¤³¤Î¥¿¥¤¥ß¥ó¥°¤Î p ¤Ï
-		 * ¡¦sidÀèÆ¬
-		 * ¡¦[,]¤Î¼¡¤ÎÊ¸»ú
-		 * ¤¤¤º¤ì¤«¤Ç¤¢¤ë¤Î¤Ç p ¤ò sid_list[i] ¤ËÂåÆş¤·¤Æ¤è¤¤
+		/* ç¾åœ¨ã®å‡¦ç†ä½ç½®ã‚’sid_list[i]ã«ã‚»ãƒƒãƒˆ */
+		/* ã“ã®ã‚¿ã‚¤ãƒŸãƒ³ã‚°ã® p ã¯
+		 * ãƒ»sidå…ˆé ­
+		 * ãƒ»[,]ã®æ¬¡ã®æ–‡å­—
+		 * ã„ãšã‚Œã‹ã§ã‚ã‚‹ã®ã§ p ã‚’ sid_list[i] ã«ä»£å…¥ã—ã¦ã‚ˆã„
 		 */
 		sid_list[i] = p;
 		i++;
 
-		/* ºÇ½é¤Ë¸½¤ì¤ë[,]¤òNULLÊ¸»ú¤ÇÃÖ´¹¤¹¤ë */
+		/* æœ€åˆã«ç¾ã‚Œã‚‹[,]ã‚’NULLæ–‡å­—ã§ç½®æ›ã™ã‚‹ */
 		p = strchr(p, C_CHAR_COMMA);
 		if ( p == NULL )
 		{
-			/* ¥«¥ó¥Ş¤¬¸«¤Ä¤«¤é¤Ê¤¤¾ì¹ç¤ÏºÇ¸å¤Î½èÍıÂĞ¾İ¤Ê¤Î¤Ç½ªÎ» */
+			/* ã‚«ãƒ³ãƒãŒè¦‹ã¤ã‹ã‚‰ãªã„å ´åˆã¯æœ€å¾Œã®å‡¦ç†å¯¾è±¡ãªã®ã§çµ‚äº† */
 			break;
 		}
 		*p = '\0';
-		/* ½èÍı°ÌÃÖ¤òNULL¤ÇÃÖ´¹¤·¤¿Ê¸»ú¤Î¼¡¤Î°ÌÃÖ¤ËÀßÄê¤¹¤ë */
+		/* å‡¦ç†ä½ç½®ã‚’NULLã§ç½®æ›ã—ãŸæ–‡å­—ã®æ¬¡ã®ä½ç½®ã«è¨­å®šã™ã‚‹ */
 		p++;
 	}
 
-	/* ºÇ¸å¤Îsid_list[n]¤ÏNULL¥İ¥¤¥ó¥¿¤Ç»ß¤á¤ë */
+	/* æœ€å¾Œã®sid_list[n]ã¯NULLãƒã‚¤ãƒ³ã‚¿ã§æ­¢ã‚ã‚‹ */
 	sid_list[i] = NULL;
 
 	i=0;
@@ -131,10 +131,10 @@ static char** AnalyzeSid(
 }
 
 /**
- * ½é´ü²½½èÍı
+ * åˆæœŸåŒ–å‡¦ç†
  */
 splitter* split_startup(
-	char *sid		// [in]		¥µ¡¼¥Ó¥¹ID(°ú¿ô¤Ç»ØÄê¤·¤¿Ê¸»úÎó)
+	char *sid		// [in]		ã‚µãƒ¼ãƒ“ã‚¹ID(å¼•æ•°ã§æŒ‡å®šã—ãŸæ–‡å­—åˆ—)
 )
 {
 	splitter* sp;
@@ -155,7 +155,7 @@ splitter* split_startup(
 		free(sp);
 		return NULL;
 	}
-	sp->pat_count	= 0xFFU;
+	sp->pat_count	= 0xFF;
 	sp->pmt_retain = -1;
 	sp->pmt_counter = 0;
 
@@ -166,22 +166,22 @@ splitter* split_startup(
 }
 
 /**
- * Íî¤È¤¹PID¤ò³ÎÄê¤µ¤»¤ë
+ * è½ã¨ã™PIDã‚’ç¢ºå®šã•ã›ã‚‹
  */
 int split_select(
-	splitter *sp,						// [in/out]		splitter¹½Â¤ÂÎ
-	ARIB_STD_B25_BUFFER *sbuf			// [in]			ÆşÎÏTS
+	splitter *sp,						// [in/out]		splitteræ§‹é€ ä½“
+	ARIB_STD_B25_BUFFER *sbuf			// [in]			å…¥åŠ›TS
 )
 {
 	int result;
-	// TS²òÀÏ
+	// TSè§£æ
 	result = ReadTs(sp, sbuf);
 
 	return result;
 }
 
 /**
- * ½ªÎ»½èÍı
+ * çµ‚äº†å‡¦ç†
  */
 void split_shutdown(splitter* sp)
 {
@@ -202,22 +202,21 @@ void split_shutdown(splitter* sp)
 }
 
 /**
- * TS ²òÀÏ½èÍı
+ * TS è§£æå‡¦ç†
  *
- * ÂĞ¾İ¤Î¥Á¥ã¥ó¥Í¥ëÈÖ¹æ¤Î¤ß¤Î PAT ¤ÎºÆ¹½ÃÛ¤È½ĞÎÏÂĞ¾İ PID ¤ÎÃê½Ğ¤ò¹Ô¤¦
+ * å¯¾è±¡ã®ãƒãƒ£ãƒ³ãƒãƒ«ç•ªå·ã®ã¿ã® PAT ã®å†æ§‹ç¯‰ã¨å‡ºåŠ›å¯¾è±¡ PID ã®æŠ½å‡ºã‚’è¡Œã†
  */
 static int ReadTs(splitter *sp, ARIB_STD_B25_BUFFER *sbuf)
-{
 #if 0
-	unsigned char **pat,				// [out]	PAT ¾ğÊó¡ÊºÆ¹½ÃÛ¸å¡Ë
-	unsigned char* pids,				// [out]	½ĞÎÏÂĞ¾İ PID ¾ğÊó
-	char** sid_list,					// [in]		½ĞÎÏÂĞ¾İ¥µ¡¼¥Ó¥¹ ID ¤Î¥ê¥¹¥È
-	unsigned char* pmt_pids,			// [in]		½ĞÎÏÂĞ¾İPID¤ÎPMT PID
-	,			// [in]		pt1_drv¤ÎÆşÎÏTS
-	int* pmt_retain,						// [in]		»Ä¤¹¤Ù¤­PMT¤Î¿ô
-	int* pmt_counter					// [out]	»Ä¤·¤¿PMT¤Î¿ô
+	unsigned char **pat,				// [out]	PAT æƒ…å ±ï¼ˆå†æ§‹ç¯‰å¾Œï¼‰
+	unsigned char* pids,				// [out]	å‡ºåŠ›å¯¾è±¡ PID æƒ…å ±
+	char** sid_list,					// [in]		å‡ºåŠ›å¯¾è±¡ã‚µãƒ¼ãƒ“ã‚¹ ID ã®ãƒªã‚¹ãƒˆ
+	unsigned char* pmt_pids,			// [in]		å‡ºåŠ›å¯¾è±¡PIDã®PMT PID
+	,			// [in]		pt1_drvã®å…¥åŠ›TS
+	int* pmt_retain,						// [in]		æ®‹ã™ã¹ãPMTã®æ•°
+	int* pmt_counter					// [out]	æ®‹ã—ãŸPMTã®æ•°
 #endif
-
+{
 	int length = sbuf->size;
 	int pid;
 	int result = TSS_ERROR;
@@ -226,32 +225,32 @@ static int ReadTs(splitter *sp, ARIB_STD_B25_BUFFER *sbuf)
 
 	index = 0;
 	while(length - index - LENGTH_PACKET > 0) {
-		pid = GetPid((unsigned char *)sbuf->data + index + 1);
+		pid = GetPid(sbuf->data + index + 1);
 		// PAT
 		if(0x0000 == pid) {
-			result = AnalyzePat(sp, (unsigned char *)sbuf->data + index);
-			if(TSS_SUCCESS != result) {
-				/* ²¼°Ì¤Î´Ø¿ôÆâÉô¤Çmalloc errorÈ¯À¸ */
+			result = AnalyzePat(sp, sbuf->data + index);
+			if(result != TSS_SUCCESS) {
+				/* ä¸‹ä½ã®é–¢æ•°å†…éƒ¨ã§malloc errorç™ºç”Ÿ */
 				return result;
 			}
 		}
 
 		// PMT
-		/* »Ä¤¹pmt_pid¤Ç¤¢¤ë¾ì¹ç¤Ë¤Ï¡¢pmt¤Ë½ñ¤«¤ì¤Æ¤¤¤ë
-		 * »Ä¤¹¤Ù¤­PCR/AUDIO/VIDEO PID¤ò¼èÆÀ¤¹¤ë */
+		/* æ®‹ã™pmt_pidã§ã‚ã‚‹å ´åˆã«ã¯ã€pmtã«æ›¸ã‹ã‚Œã¦ã„ã‚‹
+		 * æ®‹ã™ã¹ãPCR/AUDIO/VIDEO PIDã‚’å–å¾—ã™ã‚‹ */
 		if(sp->pmt_pids[pid] == 1) {
-			/* ¤³¤ÎÃæ¤Ë¤ÏPMTËè¤Ë°ìÅÙ¤·¤«Æş¤é¤Ê¤¤¤è¤¦¤Ë¤·¤Æ¤ª¤¯ */
-		    analyze_result = AnalyzePmt(sp, (unsigned char *)sbuf->data + index, 1);
-		    if (TSS_SUCCESS == analyze_result ) {
-			sp->pmt_pids[pid]++;
-			sp->pmt_counter += 1;
-			    *(sbuf->data + index + 1) = 0xffU;
-			    *(sbuf->data + index + 2) = 0xffU;
+			/* ã“ã®ä¸­ã«ã¯PMTæ¯ã«ä¸€åº¦ã—ã‹å…¥ã‚‰ãªã„ã‚ˆã†ã«ã—ã¦ãŠã */
+			analyze_result = AnalyzePmt(sp, sbuf->data + index, 1);
+			if(TSS_SUCCESS == analyze_result) {
+				sp->pmt_pids[pid]++;
+				sp->pmt_counter += 1;
+				*(sbuf->data + index + 1) = 0xff;
+				*(sbuf->data + index + 2) = 0xff;
 			}
 		}
-		/* Ï¿²è¤¹¤ëÁ´¤Æ¤ÎPMT¤Ë¤Ä¤¤¤Æ¡¢Ãæ¤Ë¤¢¤ëPCR/AUDIO/VIDEO¤ÎPID¤ò
-		 * ÆÀ¤ë */
-		/* pmt_counter ¤È pmt_retain ¤¬°ìÃ×¤¹¤ë¾ì¹ç¤Ë¾ò·ï¤ÏËş¤¿¤µ¤ì¤ë */
+		/* éŒ²ç”»ã™ã‚‹å…¨ã¦ã®PMTã«ã¤ã„ã¦ã€ä¸­ã«ã‚ã‚‹PCR/AUDIO/VIDEOã®PIDã‚’
+		 * å¾—ã‚‹ */
+		/* pmt_counter ã¨ pmt_retain ãŒä¸€è‡´ã™ã‚‹å ´åˆã«æ¡ä»¶ã¯æº€ãŸã•ã‚Œã‚‹ */
 		if(sp->pmt_counter == sp->pmt_retain) {
 			result = TSS_SUCCESS;
 			break;
@@ -289,7 +288,7 @@ static int RescanPID(splitter *splitter, unsigned char *buf)
 		for (i = 0; MAX_PID > i; i++) {
 		    if (splitter->pids[i] > 0) {
 			    splitter->pids[i] -= 1;
-		    } 
+		    }
 		}
 		fprintf(stderr, "Rescan PID End\n");
 	}
@@ -297,12 +296,12 @@ static int RescanPID(splitter *splitter, unsigned char *buf)
 	return result;
 }
 /**
- * TS Ê¬Î¥½èÍı
+ * TS åˆ†é›¢å‡¦ç†
  */
 int split_ts(
-	splitter *splitter,					// [in]		splitter¥Ñ¥é¥á¡¼¥¿
-	ARIB_STD_B25_BUFFER *sbuf,			// [in]		ÆşÎÏTS
-	splitbuf_t *dbuf							// [out]	½ĞÎÏTS
+	splitter *splitter,					// [in]		splitterãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
+	ARIB_STD_B25_BUFFER *sbuf,			// [in]		å…¥åŠ›TS
+	splitbuf_t *dbuf							// [out]	å‡ºåŠ›TS
 )
 {
 	int pid;
@@ -313,13 +312,13 @@ int split_ts(
 	int pmts = 0;
 	int version = 0;
 
-	/* ½é´ü²½ */
+	/* åˆæœŸåŒ– */
 	dbuf->size = 0;
 	if (sbuf->size < 0) {
 		return TSS_ERROR;
 	}
 
-	sptr = (unsigned char *)sbuf->data;
+	sptr = sbuf->data;
 	dptr = dbuf->buffer;
 
 	while(sbuf->size > s_offset) {
@@ -328,13 +327,13 @@ int split_ts(
 
 		// PAT
 		case 0x0000:
-			// ½ä²ó¥«¥¦¥ó¥¿¥«¥¦¥ó¥È¥¢¥Ã¥×
-			if(0xFFU == splitter->pat_count) {
+			// å·¡å›ã‚«ã‚¦ãƒ³ã‚¿ã‚«ã‚¦ãƒ³ãƒˆã‚¢ãƒƒãƒ—
+			if(0xFF == splitter->pat_count) {
 				splitter->pat_count = splitter->pat[3];
 			}
 			else {
 				splitter->pat_count += 1;
-				if(0 == (splitter->pat_count & 0x0fU)) {
+				if(0 == splitter->pat_count % 0x10) {
 					splitter->pat_count -= 0x10;
 				}
 			}
@@ -347,9 +346,9 @@ int split_ts(
 		default:
 		    if(0 != splitter->pmt_pids[pid]) {
 			    //PMT
-			    if ((sptr + s_offset)[1] & 0x40) {		// PES³«»Ï¥¤¥ó¥¸¥±¡¼¥¿
-				    // ¥Ğ¡¼¥¸¥ç¥ó¥Á¥§¥Ã¥¯
-				    for(pmts = 0; splitter->pmt_retain > pmts; pmts++) { 
+			    if ((sptr + s_offset)[1] & 0x40) {		// PESé–‹å§‹ã‚¤ãƒ³ã‚¸ã‚±ãƒ¼ã‚¿
+				    // ãƒãƒ¼ã‚¸ãƒ§ãƒ³ãƒã‚§ãƒƒã‚¯
+				    for(pmts = 0; splitter->pmt_retain > pmts; pmts++) {
 					    if (splitter->pmt_version[pmts].pid == pid) {
 						  version = splitter->pmt_version[pmts].version;
 						  break;
@@ -357,18 +356,18 @@ int split_ts(
 					}
 					if((version != ((sptr + s_offset)[10] & 0x3e))
 					   ||(splitter->pmt_retain != splitter->pmt_counter)) {
-					    // ºÆ¥Á¥§¥Ã¥¯
+					    // å†ãƒã‚§ãƒƒã‚¯
 					    result = RescanPID(splitter, sptr + s_offset);
-					} 
+					}
 				}
 				else {
 				    if (splitter->pmt_retain != splitter->pmt_counter) {
-					    // ºÆ¥Á¥§¥Ã¥¯
+					    // å†ãƒã‚§ãƒƒã‚¯
 					    result = RescanPID(splitter, sptr + s_offset);
 					}
 				}
 			}
-			/* pids[pid] ¤¬ 1 ¤Ï»Ä¤¹¥Ñ¥±¥Ã¥È¤Ê¤Î¤Ç½ñ¤­¹ş¤à */
+			/* pids[pid] ãŒ 1 ã¯æ®‹ã™ãƒ‘ã‚±ãƒƒãƒˆãªã®ã§æ›¸ãè¾¼ã‚€ */
 			if(0 != splitter->pids[pid]) {
 				memcpy(dptr + d_offset, sptr + s_offset, LENGTH_PACKET);
 				d_offset += LENGTH_PACKET;
@@ -384,19 +383,20 @@ int split_ts(
 }
 
 /**
- * PAT ²òÀÏ½èÍı
+ * PAT è§£æå‡¦ç†
  *
- * PAT ¤ò²òÀÏ¤·¡¢½ĞÎÏÂĞ¾İ¥Á¥ã¥ó¥Í¥ë¤¬´Ş¤Ş¤ì¤Æ¤¤¤ë¤«¥Á¥§¥Ã¥¯¤ò¹Ô¤¤¡¢PAT ¤òºÆ¹½ÃÛ¤¹¤ë
+ * PAT ã‚’è§£æã—ã€å‡ºåŠ›å¯¾è±¡ãƒãƒ£ãƒ³ãƒãƒ«ãŒå«ã¾ã‚Œã¦ã„ã‚‹ã‹ãƒã‚§ãƒƒã‚¯ã‚’è¡Œã„ã€PAT ã‚’å†æ§‹ç¯‰ã™ã‚‹
  */
 static int AnalyzePat(splitter *sp, unsigned char *buf)
 #if 0
-	unsigned char* buf,					// [in]		ÆÉ¤ß¹ş¤ó¤À¥Ğ¥Ã¥Õ¥¡
-	unsigned char** pat,				// [out]	PAT ¾ğÊó¡ÊºÆ¹½ÃÛ¸å¡Ë
-	unsigned char* pids,				// [out]	½ĞÎÏÂĞ¾İ PID ¾ğÊó
-	char** sid_list,					// [in]		½ĞÎÏÂĞ¾İ¥µ¡¼¥Ó¥¹ ID ¤Î¥ê¥¹¥È
-	unsigned char* pmt_pids,			// [out]	¥µ¡¼¥Ó¥¹ ID ¤ËÂĞ±ş¤¹¤ë PMT ¤Î PID
-	int* pmt_retain						// [out]	»Ä¤¹PMT¤Î¿ô
+	splitter *sp
+		unsigned char** pat,				// [out]	PAT æƒ…å ±ï¼ˆå†æ§‹ç¯‰å¾Œï¼‰
+		unsigned char* pids,				// [out]	å‡ºåŠ›å¯¾è±¡ PID æƒ…å ±
+		char** sid_list,					// [in]		å‡ºåŠ›å¯¾è±¡ã‚µãƒ¼ãƒ“ã‚¹ ID ã®ãƒªã‚¹ãƒˆ
+		unsigned char* pmt_pids,			// [out]	ã‚µãƒ¼ãƒ“ã‚¹ ID ã«å¯¾å¿œã™ã‚‹ PMT ã® PID
+		int* pmt_retain						// [out]	æ®‹ã™PMTã®æ•°
 
+	unsigned char* buf,					// [in]		èª­ã¿è¾¼ã‚“ã ãƒãƒƒãƒ•ã‚¡
 #endif
 {
 	int pos[MAX_PID];
@@ -418,50 +418,53 @@ static int AnalyzePat(splitter *sp, unsigned char *buf)
 	chosen_sid[0] = '\0';
 
 	if(pat == NULL) {
-		/* ½é´ü²½ */
+		/* åˆæœŸåŒ– */
 		sp->pmt_retain = 0;
 		memset(pos, 0, sizeof(pos));
 		size = buf[7];
 
 		/* prescan SID/PMT */
-		for(i = 13, j = 0; i < (size + 8) - 4; i = i + 4, j++) {
-			avail_sids[j] = ((int)buf[i] << 8) + buf[i+1];
-			sp->avail_pmts[j] = GetPid(&buf[i+2]);
-			/* NIT (PID 0x0010) ¤ÏÌµ»ë */
-			if(sp->avail_pmts[j] == 0x0010)
-				j--;
+		for(i = 13, j = 0; i < (size + 8) - 4; i = i + 4) {
+
+			pid = GetPid(&buf[i+2]);
+			if(pid == 0x0010)
+				continue;
+
+			avail_sids[j] = (buf[i] << 8) + buf[i+1];
+			sp->avail_pmts[j] = pid;
+			j++;
 		}
 		sp->num_pmts = j;
 
-		// ÂĞ¾İ¥Á¥ã¥ó¥Í¥ëÈ½Äê
-		/* size + 8 = ¥Ñ¥±¥Ã¥ÈÁ´Ä¹ */
-		/* ºÇ½ª 4 ¥Ğ¥¤¥È¤ÏCRC¤Ê¤Î¤ÇÈô¤Ğ¤¹ */
+		// å¯¾è±¡ãƒãƒ£ãƒ³ãƒãƒ«åˆ¤å®š
+		/* size + 8 = ãƒ‘ã‚±ãƒƒãƒˆå…¨é•· */
+		/* æœ€çµ‚ 4 ãƒã‚¤ãƒˆã¯CRCãªã®ã§é£›ã°ã™ */
 		for(i = 13; i < (size + 8) - 4; i = i + 4) {
 
-			service_id = ((int)buf[i] << 8) + buf[i+1];
+			pid = GetPid(&buf[i+2]);
+			if(pid == 0x0010)
+				continue;
+
+			service_id = (buf[i] << 8) + buf[i+1];
 			p = sid_list;
 
 			while(*p) {
-				if( sp->pmt_retain >= MAX_SERVICES )
-					return TSS_ERROR;
 				if(service_id == atoi(*p)) {
-					/* Ï¿²èÂĞ¾İ¤Î pmt_pids ¤Ï 1 ¤È¤¹¤ë */
-					/* Ï¿²èÂĞ¾İ¤Î pmt ¤Î pids ¤Ï 1 ¤È¤¹¤ë */
+					/* éŒ²ç”»å¯¾è±¡ã® pmt_pids ã¯ 1 ã¨ã™ã‚‹ */
+					/* éŒ²ç”»å¯¾è±¡ã® pmt ã® pids ã¯ 1 ã¨ã™ã‚‹ */
 					pid = GetPid(&buf[i + 2]);
-					if(pid != 0x0010) {
-						*(pmt_pids+pid) = 1;
-						*(pids+pid) = 1;
-						pos[pid] = i;
-						sid_found = TRUE;
-						sp->pmt_version[sp->pmt_retain].pid = pid;
-						sp->pmt_retain += 1;
-						sprintf(chosen_sid, "%s %d", *chosen_sid ? chosen_sid : "", service_id);
-					}
+					*(pmt_pids+pid) = 1;
+					*(pids+pid) = 1;
+					pos[pid] = i;
+					sid_found = TRUE;
+					sp->pmt_version[sp->pmt_retain].pid = pid;
+					sp->pmt_retain += 1;
+					sprintf(chosen_sid, "%s %d", *chosen_sid ? chosen_sid : "", service_id);
 					p++;
 					continue;
 				}
 				else if(!strcasecmp(*p, "hd") || !strcasecmp(*p, "sd1")) {
-					/* hd/sd1 »ØÄê»ş¤Ë¤Ï1ÈÖÌÜ¤Î¥µ¡¼¥Ó¥¹¤òÊİÂ¸¤¹¤ë */
+					/* hd/sd1 æŒ‡å®šæ™‚ã«ã¯1ç•ªç›®ã®ã‚µãƒ¼ãƒ“ã‚¹ã‚’ä¿å­˜ã™ã‚‹ */
 					if(service_id == avail_sids[0]) {
 						pid = GetPid(&buf[i + 2]);
 						*(pmt_pids+pid) = 1;
@@ -476,7 +479,7 @@ static int AnalyzePat(splitter *sp, unsigned char *buf)
 					continue;
 				}
 				else if(!strcasecmp(*p, "sd2")) {
-					/* sd2 »ØÄê»ş¤Ë¤Ï2ÈÖÌÜ¤Î¥µ¡¼¥Ó¥¹¤òÊİÂ¸¤¹¤ë */
+					/* sd2 æŒ‡å®šæ™‚ã«ã¯2ç•ªç›®ã®ã‚µãƒ¼ãƒ“ã‚¹ã‚’ä¿å­˜ã™ã‚‹ */
 					if(service_id == avail_sids[1]) {
 						pid = GetPid(&buf[i + 2]);
 						*(pmt_pids+pid) = 1;
@@ -491,7 +494,7 @@ static int AnalyzePat(splitter *sp, unsigned char *buf)
 					continue;
 				}
 				else if(!strcasecmp(*p, "sd3")) {
-					/* sd3 »ØÄê»ş¤Ë¤Ï3ÈÖÌÜ¤Î¥µ¡¼¥Ó¥¹¤òÊİÂ¸¤¹¤ë */
+					/* sd3 æŒ‡å®šæ™‚ã«ã¯3ç•ªç›®ã®ã‚µãƒ¼ãƒ“ã‚¹ã‚’ä¿å­˜ã™ã‚‹ */
 					if(service_id == avail_sids[2]) {
 						pid = GetPid(&buf[i + 2]);
 						*(pmt_pids+pid) = 1;
@@ -506,7 +509,7 @@ static int AnalyzePat(splitter *sp, unsigned char *buf)
 					continue;
 				}
 				else if(!strcasecmp(*p, "1seg")) {
-					/* 1seg »ØÄê»ş¤Ë¤Ï PMTPID=0x1FC8 ¤Î¥µ¡¼¥Ó¥¹¤òÊİÂ¸¤¹¤ë */
+					/* 1seg æŒ‡å®šæ™‚ã«ã¯ PMTPID=0x1FC8 ã®ã‚µãƒ¼ãƒ“ã‚¹ã‚’ä¿å­˜ã™ã‚‹ */
 					pid = GetPid(&buf[i + 2]);
 					if(pid == 0x1FC8) {
 						*(pmt_pids+pid) = 1;
@@ -521,41 +524,8 @@ static int AnalyzePat(splitter *sp, unsigned char *buf)
 					continue;
 				}
 				else if(!strcasecmp(*p, "all")) {
-					/* all»ØÄê»ş¤Ë¤ÏÁ´ÊİÂ¸¤¹¤ë */
+					/* allæŒ‡å®šæ™‚ã«ã¯å…¨ä¿å­˜ã™ã‚‹ */
 					pid = GetPid(&buf[i + 2]);
-					if(pid != 0x0010) {
-						*(pmt_pids+pid) = 1;
-						*(pids+pid) = 1;
-						pos[pid] = i;
-						sid_found = TRUE;
-						sp->pmt_version[sp->pmt_retain].pid = pid;
-						sp->pmt_retain += 1;
-						sprintf(chosen_sid, "%s %d", *chosen_sid ? chosen_sid : "", service_id);
-					}
-					break;
-				}
-				else if(!strcasecmp(*p, "epg")) {
-					/* all»ØÄê»ş¤Ë¤ÏÁ´ÊİÂ¸¤¹¤ë */
-					sid_found    = TRUE;
-					*(pids+0x11) = 1;
-					*(pids+0x12) = 1;
-					*(pids+0x23) = 1;
-					*(pids+0x29) = 1;
-					break;
-				}
-
-				p++;
-			} /* while */
-			if( sp->pmt_retain >= MAX_SERVICES )
-				return TSS_ERROR;
-		}
-
-		/* if sid has been specified but no sid found, fall back to all */
-		if(*sid_list && !sid_found) {
-			for(i = 13; i < (size + 8) - 4; i = i + 4) {
-				service_id = ((int)buf[i] << 8) + buf[i+1];
-				pid = GetPid(&buf[i + 2]);
-				if(pid != 0x0010U) {
 					*(pmt_pids+pid) = 1;
 					*(pids+pid) = 1;
 					pos[pid] = i;
@@ -563,9 +533,30 @@ static int AnalyzePat(splitter *sp, unsigned char *buf)
 					sp->pmt_version[sp->pmt_retain].pid = pid;
 					sp->pmt_retain += 1;
 					sprintf(chosen_sid, "%s %d", *chosen_sid ? chosen_sid : "", service_id);
-					if( sp->pmt_retain >= MAX_SERVICES )
-						return TSS_ERROR;
+					break;
 				}
+
+				p++;
+			} /* while */
+		}
+
+		/* if sid has been specified but no sid found, fall back to all */
+		if(*sid_list && !sid_found) {
+			for(i = 13; i < (size + 8) - 4; i = i + 4) {
+
+				pid = GetPid(&buf[i+2]);
+				if(pid==0x0010)
+					continue;
+
+				service_id = (buf[i] << 8) + buf[i+1];
+				pid = GetPid(&buf[i + 2]);
+				*(pmt_pids+pid) = 1;
+				*(pids+pid) = 1;
+				pos[pid] = i;
+				sid_found = TRUE;
+				sp->pmt_version[sp->pmt_retain].pid = pid;
+				sp->pmt_retain += 1;
+				sprintf(chosen_sid, "%s %d", *chosen_sid ? chosen_sid : "", service_id);
 			}
 		}
 
@@ -576,20 +567,20 @@ static int AnalyzePat(splitter *sp, unsigned char *buf)
 		fprintf(stderr, "\n");
 		fprintf(stderr, "Chosen sid    =%s\n", chosen_sid);
 
-#if 0
+#if 1
 		/* print PMTs */
 		fprintf(stderr, "Available PMT = ");
 		for(k=0; k < sp->num_pmts; k++)
-			fprintf(stderr, "%d ", sp->avail_pmts[k].pid);
+			fprintf(stderr, "0x%x ", sp->avail_pmts[k]);
 		fprintf(stderr, "\n");
 #endif
 
-		// PAT ºÆ¹½ÃÛ
+		// PAT å†æ§‹ç¯‰
 		result = RecreatePat(sp, buf, pos);
 #if 0
 		int tc;
 		for(tc=0; tc<188; tc++)
-			fprintf(stderr, "%02x ", *(pat+tc));
+			fprintf(stderr, "%02x ", *(sp->pat+tc));
 #endif
 	}
 
@@ -597,43 +588,47 @@ static int AnalyzePat(splitter *sp, unsigned char *buf)
 }
 
 /**
- * PAT ºÆ¹½ÃÛ½èÍı
+ * PAT å†æ§‹ç¯‰å‡¦ç†
  *
- * PMT ¤«¤é½ĞÎÏÂĞ¾İ¥Á¥ã¥ó¥Í¥ë°Ê³°¤Î¥Á¥ã¥ó¥Í¥ë¾ğÊó¤òºï½ü¤·¡¢PAT ¤òºÆ¹½ÃÛ¤¹¤ë
+ * PMT ã‹ã‚‰å‡ºåŠ›å¯¾è±¡ãƒãƒ£ãƒ³ãƒãƒ«ä»¥å¤–ã®ãƒãƒ£ãƒ³ãƒãƒ«æƒ…å ±ã‚’å‰Šé™¤ã—ã€PAT ã‚’å†æ§‹ç¯‰ã™ã‚‹
  */
 static int RecreatePat(splitter *sp, unsigned char *buf, int *pos)
 #if 0
-	unsigned char* buf,					// [in]		ÆÉ¤ß¹ş¤ó¤À¥Ğ¥Ã¥Õ¥¡
-	unsigned char** pat,				// [out]	PAT ¾ğÊó¡ÊºÆ¹½ÃÛ¸å¡Ë
-	unsigned char* pids,				// [out]	½ĞÎÏÂĞ¾İ PID ¾ğÊó
-	int *pos							// [in]		¼èÆÀÂĞ¾İ PMT ¤Î¥Ğ¥Ã¥Õ¥¡Ãæ¤Î°ÌÃÖ
+	splitter *sp						// [in/out]
+		unsigned char** pat,			// [out]	PAT æƒ…å ±ï¼ˆå†æ§‹ç¯‰å¾Œï¼‰
+		unsigned char* pids,			// [out]	å‡ºåŠ›å¯¾è±¡ PID æƒ…å ±
+
+	unsigned char* buf,					// [in]		èª­ã¿è¾¼ã‚“ã ãƒãƒƒãƒ•ã‚¡
+	int *pos							// [in]		å–å¾—å¯¾è±¡ PMT ã®ãƒãƒƒãƒ•ã‚¡ä¸­ã®ä½ç½®
 #endif
 {
 	unsigned char y[LENGTH_CRC_DATA];
-	unsigned int crc;
+	int crc;
 	int i;
 	int j;
 	int pos_i;
 	int pid_num = 0;
 
-	// CRC ·×»»¤Î¤¿¤á¤Î¥Ç¡¼¥¿
+	// CRC è¨ˆç®—ã®ãŸã‚ã®ãƒ‡ãƒ¼ã‚¿
 	{
-		// ¥Á¥ã¥ó¥Í¥ë¤Ë¤è¤Ã¤ÆÊÑ¤ï¤é¤Ê¤¤ÉôÊ¬
-		for (i = 0; i < LENGTH_PAT_HEADER-4; i++)
+		// ãƒãƒ£ãƒ³ãƒãƒ«ã«ã‚ˆã£ã¦å¤‰ã‚ã‚‰ãªã„éƒ¨åˆ†
+		for (i = 0; i < LENGTH_PAT_HEADER - 4; i++)
 		{
 			y[i] = buf[i + 5];
 		}
-		// ÀèÆ¬¤Î PMT ¾ğÊó¤ò¶¯À©Åª¤Ë NIT ¤Ë
-		y[LENGTH_PAT_HEADER-4] = 0x00U;
-		y[LENGTH_PAT_HEADER-3] = 0x00U;
-		y[LENGTH_PAT_HEADER-2] = 0xe0U;
-		y[LENGTH_PAT_HEADER-1] = 0x10U;
-		// ¥Á¥ã¥ó¥Í¥ë¤Ë¤è¤Ã¤ÆÊÑ¤ï¤ëÉôÊ¬
+
+		// NIT
+		y[LENGTH_PAT_HEADER-4] = 0x00;
+		y[LENGTH_PAT_HEADER-3] = 0x00;
+		y[LENGTH_PAT_HEADER-2] = 0xe0;
+		y[LENGTH_PAT_HEADER-1] = 0x10;
+
+		// ãƒãƒ£ãƒ³ãƒãƒ«ã«ã‚ˆã£ã¦å¤‰ã‚ã‚‹éƒ¨åˆ†
 		for (i = 0; i < MAX_PID; i++)
 		{
 			if(pos[i] != 0)
 			{
-				/* buf[pos_i] ¤ò y ¤Ë¥³¥Ô¡¼(Ãê½Ğ¤·¤¿PID¤Î¿ô) */
+				/* buf[pos_i] ã‚’ y ã«ã‚³ãƒ”ãƒ¼(æŠ½å‡ºã—ãŸPIDã®æ•°) */
 				pos_i = pos[i];
 				for (j = 0; j < 4; j++)
 				{
@@ -643,97 +638,99 @@ static int RecreatePat(splitter *sp, unsigned char *buf, int *pos)
 			}
 		}
 	}
-	/* ¥Ñ¥±¥Ã¥È¥µ¥¤¥º·×»» */
-	y[2] = (unsigned char)(pid_num * 4 + 0x0d);
-	// CRC ·×»»
+	/* ãƒ‘ã‚±ãƒƒãƒˆã‚µã‚¤ã‚ºè¨ˆç®— */
+	y[2] = pid_num * 4 + 0x0d;
+	// CRC è¨ˆç®—
 	crc = GetCrc32(y, LENGTH_PAT_HEADER + pid_num*4);
 
-	// PAT ºÆ¹½À®
+	// PAT å†æ§‹æˆ
 	sp->pat = (unsigned char*)malloc(LENGTH_PACKET);
 	if(sp->pat == NULL)
 	{
 		fprintf(stderr, "RecreatePat() malloc error.\n");
 		return(TSS_NULL);
 	}
-	memset(sp->pat, 0xFFU, LENGTH_PACKET);
+	memset(sp->pat, 0xFF, LENGTH_PACKET);
 	for (i = 0; i < 5; i++)
 	{
-		sp->pat[i] = buf[i];
+		(sp->pat)[i] = buf[i];
 	}
 	for (i = 0; i < LENGTH_PAT_HEADER + pid_num*4; i++)
 	{
-		sp->pat[i + 5] = y[i];
+		(sp->pat)[i + 5] = y[i];
 	}
-	sp->pat[5 + LENGTH_PAT_HEADER + pid_num*4] = (unsigned char)((crc >> 24) & 0xFFU);
-	sp->pat[6 + LENGTH_PAT_HEADER + pid_num*4] = (unsigned char)((crc >> 16) & 0xFFU);
-	sp->pat[7 + LENGTH_PAT_HEADER + pid_num*4] = (unsigned char)((crc >>  8) & 0xFFU);
-	sp->pat[8 + LENGTH_PAT_HEADER + pid_num*4] = (unsigned char)((crc      ) & 0xFFU);
+	(sp->pat)[5 + LENGTH_PAT_HEADER + pid_num*4] = (crc >> 24) & 0xFF;
+	(sp->pat)[6 + LENGTH_PAT_HEADER + pid_num*4] = (crc >> 16) & 0xFF;
+	(sp->pat)[7 + LENGTH_PAT_HEADER + pid_num*4] = (crc >>  8) & 0xFF;
+	(sp->pat)[8 + LENGTH_PAT_HEADER + pid_num*4] = (crc      ) & 0xFF;
 
 	return(TSS_SUCCESS);
 }
 
 /**
- * PMT ²òÀÏ½èÍı
+ * PMT è§£æå‡¦ç†
  *
- * PMT ¤ò²òÀÏ¤·¡¢ÊİÂ¸ÂĞ¾İ¤Î PID ¤òÆÃÄê¤¹¤ë
+ * PMT ã‚’è§£æã—ã€ä¿å­˜å¯¾è±¡ã® PID ã‚’ç‰¹å®šã™ã‚‹
  */
 static int AnalyzePmt(splitter *sp, unsigned char *buf, unsigned char mark)
 #if 0
-	unsigned char* buf,					// [in]		ÆÉ¤ß¹ş¤ó¤À¥Ğ¥Ã¥Õ¥¡
-	unsigned char* pids				// [out]	½ĞÎÏÂĞ¾İ PID ¾ğÊó
+	unsigned char* buf,					// [in]		èª­ã¿è¾¼ã‚“ã ãƒãƒƒãƒ•ã‚¡
+	unsigned char* pids					// [out]	å‡ºåŠ›å¯¾è±¡ PID æƒ…å ±
 #endif
 {
-	uint32_t Nall;
-	uint32_t N;
+	unsigned char Nall;
+	unsigned char N;
 	int pcr;
 	int epid;
-    int count;
-    int pid;
-	int payload_offset;		// ¥Ú¥¤¥í¡¼¥É³«»Ï¥ª¥Õ¥»¥Ã¥È
+	int pid;
+	int retry_count = 0;
+	int count;
+	int payload_offset;	// offset to payload
 
-    pid = GetPid(&buf[1]);
-	if (buf[1] & 0x40U) {		// PES³«»Ï¥¤¥ó¥¸¥±¡¼¥¿
-		sp->section_remain[pid] = ((uint16_t)(buf[6] & 0x0FU) << 8) + buf[7] + 3;	// ¥»¥¯¥·¥ç¥ó¥µ¥¤¥º¼èÆÀ(¥Ø¥Ã¥À¹ş)
+	pid = GetPid(&buf[1]);
+	if (buf[1] & 0x40) {		// PESé–‹å§‹ã‚¤ãƒ³ã‚¸ã‚±ãƒ¼ã‚¿
+		sp->section_remain[pid] = ((buf[6] & 0x0F) << 8) + buf[7] + 3;	// ã‚»ã‚¯ã‚·ãƒ§ãƒ³ã‚µã‚¤ã‚ºå–å¾—(ãƒ˜ãƒƒãƒ€è¾¼)
 		payload_offset = 5;
 
 		for (count = 0; sp->pmt_retain > count; count++) {
 		    if (sp->pmt_version[count].pid  == pid) {
-                sp->pmt_version[count].version = (int)(buf[10] & 0x3eU);
+                sp->pmt_version[count].version = buf[10] & 0x3e;
 			}
 		}
-		// PCR, ÈÖÁÈ¾ğÊó¤¬ÀèÆ¬¤«¤é¤Ï¤ß½Ğ¤ë¤³¤È¤Ï¤Ê¤¤¤À¤í¤¦
-	// PCR
+		// PCR, ç•ªçµ„æƒ…å ±ãŒå…ˆé ­ã‹ã‚‰ã¯ã¿å‡ºã‚‹ã“ã¨ã¯ãªã„ã ã‚ã†
+
+		// PCR
 		pcr = GetPid(&buf[payload_offset + 8]);
 		sp->pids[pcr] = mark;
 
-	// ECM
-		N = ((uint32_t)(buf[payload_offset + 10] & 0x0F) << 8) + buf[payload_offset + 11] + payload_offset + 12;	// ES¾ğÊó³«»ÏÅÀ
+		// ECM
+		N = ((buf[payload_offset + 10] & 0x0F) << 8) + buf[payload_offset + 11] + payload_offset + 12;	// ESæƒ…å ±é–‹å§‹ç‚¹
+		int p = payload_offset + 12;
 
-		uint32_t p = payload_offset + 12;
-	while(p < N) {
-		uint32_t ca_pid;
-		uint32_t tag;
-		uint32_t len;
+		while(p < N) {
+			uint32_t ca_pid;
+			uint32_t tag;
+			uint32_t len;
 
-		tag = buf[p];
-		len = buf[p+1];
-		p += 2;
+			tag = buf[p];
+			len = buf[p+1];
+			p += 2;
 
-		if(tag == 0x09 && len >= 4 && p+len <= N) {
-			ca_pid = (((int)buf[p+2] << 8) | buf[p+3]) & 0x1fffU;
-			sp->pids[ca_pid] = mark;
+			if(tag == 0x09 && len >= 4 && p+len <= N) {
+				ca_pid = ((buf[p+2] << 8) | buf[p+3]) & 0x1fff;
+				sp->pids[ca_pid] = mark;
+			}
+			p += len;
 		}
-		p += len;
-	}
 	}
 	else {
-	    if (sp->section_remain[pid] == 0) return TSS_ERROR;								// ¥»¥¯¥·¥ç¥óÀèÆ¬¤¬Èô¤ó¤Ç¤¤¤ë
-		if ((buf[3] & 0x0F) != ((sp->packet_seq[pid] + 1) & 0x0F)) return TSS_ERROR;	// ¥Ñ¥±¥Ã¥È¥«¥¦¥ó¥¿¤¬Èô¤ó¤À
+	    if (sp->section_remain[pid] == 0) return TSS_ERROR;								// ã‚»ã‚¯ã‚·ãƒ§ãƒ³å…ˆé ­ãŒé£›ã‚“ã§ã„ã‚‹
+		if ((buf[3] & 0x0F) != ((sp->packet_seq[pid] + 1) & 0x0F)) return TSS_ERROR;	// ãƒ‘ã‚±ãƒƒãƒˆã‚«ã‚¦ãƒ³ã‚¿ãŒé£›ã‚“ã 
 		payload_offset = 4;
 		N = payload_offset;
 	}
-	sp->packet_seq[pid] = (uint8_t)buf[3] & 0x0F;				// ½ä²ó¥«¥¦¥ó¥¿
-	
+	sp->packet_seq[pid] = buf[3] & 0x0F;				// å·¡å›ã‚«ã‚¦ãƒ³ã‚¿
+
 	Nall = sp->section_remain[pid];
 	if(Nall > LENGTH_PACKET - payload_offset)
 		Nall = LENGTH_PACKET - payload_offset;
@@ -741,49 +738,52 @@ static int AnalyzePmt(splitter *sp, unsigned char *buf, unsigned char mark)
 	// ES PID
 	while (N <= Nall + payload_offset - 5)
 	{
-		// ¥¹¥È¥ê¡¼¥à¼ïÊÌ¤¬ 0x0D¡Êtype D¡Ë¤Ï½ĞÎÏÂĞ¾İ³°
+		// ã‚¹ãƒˆãƒªãƒ¼ãƒ ç¨®åˆ¥ãŒ 0x0Dï¼ˆtype Dï¼‰ã¯å‡ºåŠ›å¯¾è±¡å¤–
 		if (0x0D != buf[N])
 		{
 			epid = GetPid(&buf[N + 1]);
 
 			sp->pids[epid] = mark;
 		}
-		N += 5 + (((int)(buf[N + 3]) & 0x0F) << 8) + buf[N + 4];
+		N += 4 + (((buf[N + 3]) & 0x0F) << 8) + buf[N + 4] + 1;
+		retry_count++;
+		if(retry_count > Nall) {
+			return TSS_ERROR;
+		}
 	}
-
 	sp->section_remain[pid] -= Nall;
 
 	if (sp->section_remain[pid] > 0)
 		return SECTION_CONTINUE;
 	else
-	return TSS_SUCCESS;
+		return TSS_SUCCESS;
 }
 
 /**
- * CRC ·×»»
+ * CRC è¨ˆç®—
  */
-static unsigned int GetCrc32(
-	unsigned char* data,				// [in]		CRC ·×»»ÂĞ¾İ¥Ç¡¼¥¿
-	int len)							// [in]		CRC ·×»»ÂĞ¾İ¥Ç¡¼¥¿Ä¹
+static int GetCrc32(
+	unsigned char* data,				// [in]		CRC è¨ˆç®—å¯¾è±¡ãƒ‡ãƒ¼ã‚¿
+	int len)							// [in]		CRC è¨ˆç®—å¯¾è±¡ãƒ‡ãƒ¼ã‚¿é•·
 {
-	unsigned int crc;
+	int crc;
 	int i, j;
-	unsigned int c;
-	unsigned int bit;
+	int c;
+	int bit;
 
-	crc = 0xFFFFFFFFU;
+	crc = 0xFFFFFFFF;
 	for (i = 0; i < len; i++)
 	{
-		unsigned char x;
+		char x;
 		x = data[i];
 
 		for (j = 0; j < 8; j++)
 		{
 
-			bit = (x >> (7 - j)) & 0x1U;
+			bit = (x >> (7 - j)) & 0x1;
 
 			c = 0;
-			if (crc & 0x80000000U)
+			if (crc & 0x80000000)
 			{
 				c = 1;
 			}
@@ -792,10 +792,10 @@ static unsigned int GetCrc32(
 
 			if (c ^ bit)
 			{
-				crc ^= 0x04C11DB7U;
+				crc ^= 0x04C11DB7;
 			}
 
-			crc &= 0xFFFFFFFFU;
+			crc &= 0xFFFFFFFF;
 		}
 	}
 
@@ -803,10 +803,10 @@ static unsigned int GetCrc32(
 }
 
 /**
- * PID ¼èÆÀ
+ * PID å–å¾—
  */
 static int GetPid(
-	unsigned char* data)				// [in]		¼èÆÀÂĞ¾İ¥Ç¡¼¥¿¤Î¥İ¥¤¥ó¥¿
+	unsigned char* data)				// [in]		å–å¾—å¯¾è±¡ãƒ‡ãƒ¼ã‚¿ã®ãƒã‚¤ãƒ³ã‚¿
 {
-	return ((int)(data[0] & 0x1FU) << 8) + data[1];
+	return ((data[0] & 0x1F) << 8) + data[1];
 }

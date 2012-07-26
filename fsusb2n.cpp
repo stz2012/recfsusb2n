@@ -216,23 +216,23 @@ void mq_recv(int msqid)
 		pDev->ResetDeMod();
 
 #ifdef B25
-	uint8_t		*buf = NULL;
-	// B25Decoder flush Data
-	if (args.b25) {
-		b25dec.flush();
-		b25dec.get((const uint8_t **)&buf);
-	// B25初期化
-		b25dec.setRound(4);
-		b25dec.setStrip(true);
-		b25dec.setEmmProcess(false);
-		if(b25dec.open(usbDev) == 0) {
-//			log << "B25Decoder initialized." << std::endl;
-		}else{
-			// エラー時b25を行わず処理続行。終了ステータス1
-//			std::cerr << "disable b25 decoding." << std::endl;
-//			args.b25 = false;
+		uint8_t		*buf = NULL;
+		// B25Decoder flush Data
+		if (args.b25) {
+			b25dec.flush();
+			b25dec.get((const uint8_t **)&buf);
+		// B25初期化
+			b25dec.setRound(4);
+			b25dec.setStrip(true);
+			b25dec.setEmmProcess(false);
+			if(b25dec.open(usbDev) == 0) {
+//				log << "B25Decoder initialized." << std::endl;
+			}else{
+				// エラー時b25を行わず処理続行。終了ステータス1
+//				std::cerr << "disable b25 decoding." << std::endl;
+//				args.b25 = false;
+			}
 		}
-	}
 #endif /* defined(B25) */
 
 		// TS splitter 再初期化
@@ -332,7 +332,7 @@ int read_line(int socket, char *p){
 int main(int argc, char **argv)
 {
 	ARIB_STD_B25_BUFFER	ubuf;
-	int					dest;
+	int					dest = 0;
 	int					msqid;
 	int					code = TSS_SUCCESS;
 	int					new_ch = 0;
@@ -367,7 +367,7 @@ int main(int argc, char **argv)
 	sigaction(SIGTERM, &sa, NULL);
 	sigaction(SIGPIPE, &sa, NULL);
 
-	int connected_socket, listening_socket;
+	int connected_socket, listening_socket = 0;
 	if( !args.http ){
 		// 出力先ファイルオープン
 		if(!args.stdout) {

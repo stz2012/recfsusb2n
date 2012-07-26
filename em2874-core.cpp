@@ -351,7 +351,7 @@ int EM2874Device::getDeviceID()
 	if(!readI2C (EEPROM_ADDR, 2, buf, true))
 		return -1;
 
-	if(*(uint16_t*)buf == 0x003b)
+	if(buf[0] == 0x3b && buf[1] == 0x00)
 		return 2;
 
 	// Tuner Regで判断

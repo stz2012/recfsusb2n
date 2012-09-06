@@ -1,6 +1,8 @@
-地デジTV TunerのFSUSB2N向け
-recfsusb2n ver. 0.9.2 (Linux版)
-http://tri.dw.land.to/fsusb2n/
+【recfsusb2n ver. 0.9.2 + α（STZ版）】
+Linux用FSUSB2N録画プログラムです。
+こちらは亜流版ですのでご注意下さい。
+
+本家はこちら→ http://tri.dw.land.to/fsusb2n/
 
 責任は負いません。自己責任で行ってください。
 当然、製品の保証外となり、修理・交換・サポートはされません。まず、Windows上で動作確認は行ってください。

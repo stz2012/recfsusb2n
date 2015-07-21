@@ -123,9 +123,9 @@ EM2874Device* EM2874Device::AllocDevice()
 				// バスに繋がっているデバイスでループ
 				if (!boost::filesystem::is_directory(*dev_iter)) {
 					// 開く
-					if (pDev->openDevice(dev_iter->string().c_str())) {
+					if (pDev->openDevice(dev_iter->path().string().c_str())) {
 						isFound = true;
-						if(log) *log << "device: " << dev_iter->string() << std::endl;
+						if(log) *log << "device: " << dev_iter->path().string() << std::endl;
 						break;
 					}
 				}

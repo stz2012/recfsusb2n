@@ -14,7 +14,7 @@
 class KtvDevice {
 public:
 	KtvDevice (EM2874Device *pDev);
-	~KtvDevice();
+	virtual ~KtvDevice();
 
 	virtual void InitTuner () = 0;
 	virtual void SetFrequency (unsigned int freq_khz) = 0;

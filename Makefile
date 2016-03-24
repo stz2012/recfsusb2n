@@ -23,7 +23,7 @@ DEPEND = Makefile.dep
 
 CC       = gcc
 CXX      = g++
-CXXFLAGS = -O2 -g -Wall -pthread -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 $(B25)
+CXXFLAGS = -O2 -g -Wall -pthread -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 $(B25) $(TSSL)
 LDFLAGS  = 
 LIBS     = -lpthread -lboost_thread -lboost_system -lboost_filesystem
 

@@ -191,7 +191,8 @@ int EM2874Device::writeReg (const uint8_t idx, const uint8_t val)
 
 bool EM2874Device::readI2C (const uint8_t addr, const uint16_t size, uint8_t *data, const bool isStop)
 {
-	usbdevfs_ctrltransfer ctrl1 = {USB_DIR_IN |USB_TYPE_VENDOR|USB_RECIP_DEVICE, isStop ? 2 : 3, 0, addr, size, USBREQ_TIMEOUT, data};
+	uint8_t req = isStop ? 0x02 : 0x03;
+	usbdevfs_ctrltransfer ctrl1 = {USB_DIR_IN |USB_TYPE_VENDOR|USB_RECIP_DEVICE, req, 0, addr, size, USBREQ_TIMEOUT, data};
 	if(usb_ctrl(fd, &ctrl1) < 0)	return false;
 
 	uint8_t ret = readReg(EM28XX_REG_I2C_RET);
@@ -200,7 +201,8 @@ bool EM2874Device::readI2C (const uint8_t addr, const uint16_t size, uint8_t *da
 
 bool EM2874Device::writeI2C (const uint8_t addr, const uint16_t size, uint8_t *data, const bool isStop)
 {
-	usbdevfs_ctrltransfer ctrl1 = {USB_DIR_OUT|USB_TYPE_VENDOR|USB_RECIP_DEVICE, isStop ? 2 : 3, 0, addr, size, USBREQ_TIMEOUT, data};
+	uint8_t req = isStop ? 0x02 : 0x03;
+	usbdevfs_ctrltransfer ctrl1 = {USB_DIR_OUT|USB_TYPE_VENDOR|USB_RECIP_DEVICE, req, 0, addr, size, USBREQ_TIMEOUT, data};
 		if(usb_ctrl(fd, &ctrl1) < 0)	return false;
 
 	uint8_t ret = readReg(EM28XX_REG_I2C_RET);

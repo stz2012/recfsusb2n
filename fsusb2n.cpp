@@ -370,10 +370,10 @@ int read_line(int socket, char *p){
 
 int main(int argc, char **argv)
 {
-	ARIB_STD_B25_BUFFER	ubuf;
 	int					dest = 0;
 	int					msqid;
 #ifdef TSSL
+	ARIB_STD_B25_BUFFER	ubuf;
 	int					code = TSS_SUCCESS;
 #endif /* defined(TSSL) */
 #ifdef HTTP

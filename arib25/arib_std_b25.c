@@ -1789,42 +1789,6 @@ LAST:
 	return r;
 }
 
-static void dump_pts(uint8_t *src, int32_t crypt)
-{
-	int32_t pts_dts_flag;
-	int64_t pts,dts;
-	
-	src += 4; // TS ヘッダ部
-	src += 4; // start_code_prefix + stream_id 部
-	src += 2; // packet_length 部
-
-	pts_dts_flag = (src[1] >> 6) & 3;
-
-	src += 3;
-	if(pts_dts_flag & 2){
-		// PTS
-		pts = (src[0] >> 1) & 0x07;
-		pts <<= 15;
-		pts += ((src[1] << 8) + src[2]) >> 1;
-		pts <<= 15;
-		pts += ((src[3] << 8) + src[4]) >> 1;
-		src += 5;
-	}
-	if(pts_dts_flag & 1){
-		// DTS
-		dts = (src[0] >> 1) & 0x07;
-		dts <<= 15;
-		dts += ((src[1] << 8) + src[2]) >> 1;
-		dts <<= 15;
-		dts += ((src[3] << 8) + src[4]) >> 1;
-	}
-
-	if(pts_dts_flag == 2){
-		fprintf(stdout, "  key=%d, pts=%"PRId64"\n", crypt, pts/90);
-		fflush(stdout);
-	}
-}
-
 static int proc_arib_std_b25(ARIB_STD_B25_PRIVATE_DATA *prv)
 {
 	int r;
@@ -1919,11 +1883,7 @@ static int proc_arib_std_b25(ARIB_STD_B25_PRIVATE_DATA *prv)
 		}else{
 			prv->map[pid].normal_packet += 1;
 		}
-#if 0
-		if( (hdr.payload_unit_start_indicator != 0) && (pid == 0x111) ){
-			dump_pts(curr, crypt);
-		}
-#endif
+
 		if(!append_work_buffer(&(prv->dbuf), curr, 188)){
 			r = ARIB_STD_B25_ERROR_NO_ENOUGH_MEMORY;
 			goto LAST;

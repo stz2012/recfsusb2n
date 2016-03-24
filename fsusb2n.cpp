@@ -516,20 +516,21 @@ int main(int argc, char **argv)
 			//set write target to http
 			dest = connected_socket;
 		}
-#endif /* defined(HTTP) */
 		if( new_ch != args.channel ){
 			// チューニング開始
 			if( new_ch != 0 )
 				args.channel = new_ch;
 			else
 				new_ch = args.channel;
+#endif /* defined(HTTP) */
 			pDev->InitTuner();
 			// 周波数を計算 (UHF13ch = 473143 kHz)
 			pDev->SetFrequency( (args.channel * 6000) + 395143 );
 			pDev->InitDeMod();
 			pDev->ResetDeMod();
+#ifdef HTTP
 		}
-
+#endif /* defined(HTTP) */
 #ifdef B25
 		// B25初期化
 		if (args.b25) {

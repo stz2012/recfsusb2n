@@ -1,5 +1,7 @@
 # options
 B25	= -DB25
+#HTTP    = -DHTTP
+TSSL    = -DTSSL
 
 ifdef B25
   B25_PATH = ./arib25
@@ -10,9 +12,13 @@ ifdef B25
   B25_LIBS = $(PCSC_LDLIBS) -lm
 endif
 
+ifdef TSSL
+  TSSL_OBJS = tssplitter_lite.o
+endif
+
 PREFIX = /usr/local
 TARGET = recfsusb2n
-OBJS   = fsusb2n.o usbops.o em2874-core.o ktv.o IoThread.o tssplitter_lite.o $(B25_OBJS)
+OBJS   = fsusb2n.o usbops.o em2874-core.o ktv.o IoThread.o $(B25_OBJS) $(TSSL_OBJS)
 DEPEND = Makefile.dep
 
 CC       = gcc

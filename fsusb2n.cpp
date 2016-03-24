@@ -26,9 +26,11 @@ http://tri.dw.land.to/fsusb2n/
 
 #ifdef B25
 #define _REAL_B25_
-	#include "B25Decoder.hpp"
-#endif
+#include "B25Decoder.hpp"
+#endif /* defined(B25) */
+#ifdef TSSL
 #include "tssplitter_lite.h"
+#endif /* defined(TSSL) */
 
 /* maximum write length at once */
 #define SIZE_CHANK 1316
@@ -41,70 +43,88 @@ http://tri.dw.land.to/fsusb2n/
 void usage(char *argv0)
 {
 	std::cerr << "usage:\n" << argv0
+		<< " [-v]"
 #ifdef B25
 		<< " [--b25]"
-#endif
-		<< " [-v]"
+#endif /* defined(B25) */
+#ifdef TSSL
 		<< " [--sid n1,n2,...]"
+#endif /* defined(TSSL) */
+#ifdef HTTP
+		<< " [--http portnumber]"
+#endif /* defined(HTTP) */
 		<< " [--wait n] channel recsec destfile\n" << std::endl;
 
 	std::cerr << "Remarks:\n"
 			<< "if rectime  is '-', records indefinitely.\n"
 			<< "if destfile is '-', stdout is used for output.\n" << std::endl;
 
-	std::cerr << "http broadcasting mode:\n" << argv0
-		<< " --http portnumber"
-#ifdef B25
-		<< " [--b25]"
-#endif
-		<< " [-v]"
-		<< " [--sid n1,n2,...]"
-		<< " [--wait n]\n" << std::endl;
-
 	std::cerr << "Options:" << std::endl;
-	std::cerr << "--b25:              Decrypt using BCAS card" << std::endl;
 	std::cerr << "-v:                 " << std::endl;
+#ifdef B25
+	std::cerr << "--b25:              Decrypt using BCAS card" << std::endl;
+#endif /* defined(B25) */
+#ifdef TSSL
 	std::cerr << "--sid n1,n2,...:    Specify SID number or keywords(all,hd,sd1,sd2,sd3,1seg,epg) in CSV format" << std::endl;
+#endif /* defined(TSSL) */
+#ifdef HTTP
 	std::cerr << "--http portnumber:  Turn on http broadcasting (run as a daemon)" << std::endl;
+#endif /* defined(HTTP) */
 	std::cerr << "--wait n:           Wait insert before of recording (1=100mSec)" << std::endl;
 	exit(1);
 }
 
 EM2874Device		*usbDev;
 KtvDevice			*pDev;
+#ifdef B25
 B25Decoder			b25dec;
+#endif /* defined(B25) */
+#ifdef TSSL
 splitter			*sp = NULL;
 static splitbuf_t	splitbuf;
 int					split_select_finish = TSS_ERROR;
+#endif /* defined(TSSL) */
 time_t				time_start;	// 開始時間
 
 /* オプション情報 */
 struct Args {
-	bool b25;
 	bool stdout;
 	int channel;
 	bool forever;
 	int recsec;
 	char* destfile;
 	bool verbose;
+#ifdef B25
+	bool b25;
+#endif /* defined(B25) */
+#ifdef TSSL
 	bool splitter;
 	char sid_list[32];
+#endif /* defined(TSSL) */
+#ifdef HTTP
 	bool http;
 	int port_http;
+#endif /* defined(HTTP) */
 	int waitcnt;
 };
 Args args = {
-	false,
 	false,
 	0,
 	false,
 	0,
 	NULL,
 	false,
+#ifdef B25
+	false,
+#endif /* defined(B25) */
+#ifdef TSSL
 	false,
 	{0},
+#endif /* defined(TSSL) */
+#ifdef HTTP
 	false,
 	12345,
+#endif /* defined(HTTP) */
 	0
 };
 
@@ -114,38 +134,50 @@ void parseOption(int argc, char *argv[])
 	while (1) {
 		int option_index = 0;
 		static option long_options[] = {
+#ifdef B25
 			{ "b25",      0, NULL, 'b' },
 			{ "B25",      0, NULL, 'b' },
+#endif /* defined(B25) */
+#ifdef TSSL
 			{ "sid",      1, NULL, 'i' },
+#endif /* defined(TSSL) */
+#ifdef HTTP
 			{ "http",     1, NULL, 'H' },
+#endif /* defined(HTTP) */
 			{ "wait",     1, NULL, 'w' },
 			{ 0,     0, NULL, 0   }
 		};
 		
 		int r = getopt_long(argc, argv,
-							"bvi:H:w:",
+							"vbi:H:w:",
 							long_options, &option_index);
 		if (r < 0) {
 			break;
 		}
 		
 		switch (r) {
-			case 'b':
-				args.b25 = true;
-				break;
 			case 'v':
 				args.verbose = true;
 				break;
+#ifdef B25
+			case 'b':
+				args.b25 = true;
+				break;
+#endif /* defined(B25) */
+#ifdef TSSL
 			case 'i':
 				args.splitter = true;
 				strcpy( args.sid_list, optarg );
 				break;
+#endif /* defined(TSSL) */
+#ifdef HTTP
 			case 'H':
 				args.http      = TRUE;
 				args.port_http = atoi(optarg);
 				args.forever   = true;
 				fprintf(stderr, "creating a http daemon\n");
 				break;
+#endif /* defined(HTTP) */
 			case 'w':
 				args.waitcnt = atoi(optarg);
 				break;
@@ -154,7 +186,9 @@ void parseOption(int argc, char *argv[])
 		}
 	}
 	
+#ifdef HTTP
 	if( !args.http ){
+#endif /* defined(HTTP) */
 		if (argc - optind != 3) {
 			usage(argv[0]);
 		}
@@ -170,7 +204,9 @@ void parseOption(int argc, char *argv[])
 		if (strcmp("-", args.destfile) == 0) {
 			args.stdout = true;
 		}
+#endif /* defined(HTTP) */
 	}
+#endif /* defined(HTTP) */
 }
 
 
@@ -234,7 +270,7 @@ void mq_recv(int msqid)
 			}
 		}
 #endif /* defined(B25) */
-
+#ifdef TSSL
 		// TS splitter 再初期化
 		if( args.splitter ){
 			free( splitbuf.buffer );
@@ -253,6 +289,7 @@ void mq_recv(int msqid)
 			}else
 				args.splitter = false;
 		}
+#endif /* defined(TSSL) */
 
 		// 受信安定化待ち
 		int timeout = 100;
@@ -269,6 +306,7 @@ void mq_recv(int msqid)
 
 		/* restart recording */
 		usbDev->startStream();
+#ifdef TSSL
 	}else{
 		if( strlen(service_id) ){
 			// TS splitter 再初期化
@@ -286,6 +324,7 @@ void mq_recv(int msqid)
 			}else
 				args.splitter = false;
 		}
+#endif /* defined(TSSL) */
 	}
 
 	if(time_to_add) {
@@ -334,8 +373,12 @@ int main(int argc, char **argv)
 	ARIB_STD_B25_BUFFER	ubuf;
 	int					dest = 0;
 	int					msqid;
+#ifdef TSSL
 	int					code = TSS_SUCCESS;
+#endif /* defined(TSSL) */
+#ifdef HTTP
 	int					new_ch = 0;
+#endif /* defined(HTTP) */
 
 	parseOption(argc, argv);
 	if (!args.forever && args.recsec <= 0) {
@@ -367,8 +410,10 @@ int main(int argc, char **argv)
 	sigaction(SIGTERM, &sa, NULL);
 	sigaction(SIGPIPE, &sa, NULL);
 
+#ifdef HTTP
 	int connected_socket, listening_socket = 0;
 	if( !args.http ){
+#endif /* defined(HTTP) */
 		// 出力先ファイルオープン
 		if(!args.stdout) {
 			dest = open(args.destfile, (O_RDWR | O_CREAT | O_TRUNC), 0666);
@@ -378,6 +423,7 @@ int main(int argc, char **argv)
 			}
 		}else
 			dest = 1;	// stdout;
+#ifdef HTTP
 	}else{
 		struct sockaddr_in	sin;
 		int					sock_optval = 1;
@@ -416,6 +462,7 @@ int main(int argc, char **argv)
 		}
 		fprintf(stderr,"listening at port %d\n", args.port_http);
 	}
+#endif /* defined(HTTP) */
 	/* spawn ipc */
 	key_t key = (key_t)getpid();
 
@@ -426,6 +473,7 @@ int main(int argc, char **argv)
 	/* delete message queue*/
 
 	while(1){
+#ifdef HTTP
 		if( args.http ){
 			struct hostent		*peer_host;
 			struct sockaddr_in	peer_sin;
@@ -468,6 +516,7 @@ int main(int argc, char **argv)
 			//set write target to http
 			dest = connected_socket;
 		}
+#endif /* defined(HTTP) */
 		if( new_ch != args.channel ){
 			// チューニング開始
 			if( new_ch != 0 )
@@ -496,7 +545,7 @@ int main(int argc, char **argv)
 			}
 		}
 #endif /* defined(B25) */
-
+#ifdef TSSL
 		/* initialize splitter */
 		if(args.splitter) {
 			sp = split_startup(args.sid_list);
@@ -509,6 +558,7 @@ int main(int argc, char **argv)
 				std::cerr << "Cannot start TS splitter." << std::endl;
 			}
 		}
+#endif /* defined(TSSL) */
 
 		// チューニング完了・受信安定化待ち
 		int timeout = 100;
@@ -600,6 +650,7 @@ int main(int argc, char **argv)
 				buf = b25buf;
 			}
 #endif /* defined(B25) */
+#ifdef TSSL
 			if (args.splitter) {
 				splitbuf.size = 0;
 				if( splitbuf.allocation_size < rlen ){
@@ -655,7 +706,8 @@ int main(int argc, char **argv)
 				rlen = splitbuf.size;
 				buf = (uint8_t *)splitbuf.buffer;
 fin:;
-			} /* if */
+			}
+#endif /* defined(TSSL) */
 
 			if(args.verbose) {
 				log << "Sequence = " << (unsigned)pDev->DeMod_GetSequenceState() << ", Quality = " << 0.02*pDev->DeMod_GetQuality() << ", " << rlen << "bytes wrote." << std::endl;
@@ -683,8 +735,8 @@ fin:;
 
 		usbDev->stopStream();
 
-        /* delete message queue*/
-        msgctl(msqid, IPC_RMID, NULL);
+		/* delete message queue*/
+		msgctl(msqid, IPC_RMID, NULL);
 		rlen = 0;
 		buf = NULL;
 
@@ -696,6 +748,7 @@ fin:;
 			rlen = b25dec.get((const uint8_t **)&buf);
 		}
 #endif /* defined(B25) */
+#ifdef TSSL
 		if(args.splitter) {
 			if( rlen ){
 				if( splitbuf.allocation_size < rlen ){
@@ -721,6 +774,7 @@ fin:;
 			free( splitbuf.buffer );
 			split_shutdown(sp);
 		}
+#endif /* defined(TSSL) */
 		while(rlen > 0) {
 			ssize_t wc;
 			int ws = rlen < SIZE_CHANK ? rlen : SIZE_CHANK;
@@ -733,11 +787,13 @@ fin:;
 			rlen -= wc;
 			buf += wc;
 		}
+#ifdef HTTP
 		if( args.http ){
 			/* close http socket */
 			close(dest);
 			fprintf(stderr,"connection closed. still listening at port %d\n",args.port_http);
 		}else
+#endif /* defined(HTTP) */
 			break;
 	}
 	// Default Signal Handler

@@ -728,9 +728,11 @@ fin:;
 			mq_recv(msqid);
 		}
 		if (caughtSignal) {
+#ifdef HTTP
 			if( args.http )
 				caughtSignal = false;
 			else
+#endif /* defined(HTTP) */
 				log << "interrupted." << std::endl;
 		}
 

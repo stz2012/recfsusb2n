@@ -342,10 +342,9 @@ void mq_recv(int msqid)
 	}
 }
 
-
+#ifdef HTTP
 //read 1st line from socket
-int read_line(int socket, char *p){
-	int len = 0;
+void read_line(int socket, char *p){
 	while (1){
 		int ret;
 		ret = read(socket, p, 1);
@@ -357,16 +356,13 @@ int read_line(int socket, char *p){
 		}
 		if ( *p == '\n' ){
 			p++;
-			len++;
 			break;
 		}
 		p++;
-		len++;
 	}
 	*p = '\0';
-	return len;
 }
-
+#endif /* defined(HTTP) */
 
 int main(int argc, char **argv)
 {
@@ -477,7 +473,6 @@ int main(int argc, char **argv)
 		if( args.http ){
 			struct hostent		*peer_host;
 			struct sockaddr_in	peer_sin;
-			int					read_size;
 			unsigned int		len;
 			char				buffer[256];
 			char				s0[256],s1[256],s2[256];
@@ -499,7 +494,7 @@ int main(int argc, char **argv)
 			}
 			fprintf(stderr,"connect from: %s [%s] port %d\n", peer_host->h_name, inet_ntoa(peer_sin.sin_addr), ntohs(peer_sin.sin_port));
 
-			read_size = read_line(connected_socket, buffer);
+			read_line(connected_socket, buffer);
 			fprintf(stderr,"request command is %s\n",buffer);
 			sscanf(buffer,"%s%s%s",s0,s1,s2);
 			channel = strtok(s1,delim);

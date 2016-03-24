@@ -204,7 +204,7 @@ void parseOption(int argc, char *argv[])
 		if (strcmp("-", args.destfile) == 0) {
 			args.stdout = true;
 		}
-#endif /* defined(HTTP) */
+#ifdef HTTP
 	}
 #endif /* defined(HTTP) */
 }
